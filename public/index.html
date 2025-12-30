@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1">
+        <meta http-equiv="X-UA-Compatiable" content="IE=11,Chrome=50">
+    </head>
+    <body>
+        <div>3000测试页</div>
+        <!--<iframe id="iframe" src="http://localhost:3001/index.html">跳转到3001</iframe>-->
+        <script>
+            //document.domain = 'localhost'
+            //var user = 'admin'
+
+            /**var iframe = document.getElementById('iframe')
+
+            iframe.onload = function(){
+                var data = {name:'3000 carol'}
+                iframe.contentWindow.postMessage(JSON.stringify(data),'http://localhost:3001')
+            }
+
+            window.addEventListener('message',(e)=>{
+                console.log(`3001传回来的数据是:${e.data}`)
+            })*/
+            //将hash值传给不同域名的3001页面
+            //不同域之间通过location.hash传值，如#user=admin，window.onhashchange监听接受
+            /**setTimeout(()=>{
+                iframe.src = iframe.src + '#user=admin'
+            },5000)*/
+
+            //监听同一端口3000下index2.html传回来的值
+            //相同域之间通过js方法会回调来操作,window.parent.callback()  parent要看之间转了多少层
+            /*function callback(res){
+                console.log(`data from index2 ${res}`)
+            }*/
+
+            //iframe+window.name跨域和location.hash+iframe跨域实现方式类似，都是通过相同域名的中间页面中转，
+            //不同的是window.name参数值可以传的很长
+            /**var state = 0
+            var iframe = document.createElement('iframe')
+            function proxy(url,callback){
+                iframe.src = url
+                iframe.onload = function(){
+                    if(state === 1){
+                        callback(iframe.contentWindow.name)
+                        destroyIframe()
+                    }else if(state === 0){
+                        //将值传给同域名的index2.html页面
+                        iframe.contentWindow.location = 'http://localhost:3000/index2.html'
+                        state = 1
+                    }
+                }
+                document.body.appendChild(iframe)
+            }
+
+
+            function destroyIframe(iframe){
+                iframe.contentWindow.document.write('')
+                iframe.contentWindow = close
+                document.body.removeChild(iframe)
+            }
+
+            proxy('http://localhost:3001/index.html',(res)=>{
+                console.log(`来自index2.html中转的值${res}`)
+            })*/
+        </script>
+    </body>
+</html>
