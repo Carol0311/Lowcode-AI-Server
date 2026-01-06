@@ -1,8 +1,9 @@
 # Dependency directories
 node_modules/
 
-.DS_Store
+
 .vscode/settings.json
+.DS_Store
 src/.DS_Store
 src/utils/.DS_Store
 data/.DS_Store

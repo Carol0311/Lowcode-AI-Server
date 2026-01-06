@@ -9,7 +9,6 @@ const router = express.Router()
 const addressCache = {}
 //加载地址数据
 const loadData = async (filePath, type) => {
-  console.log(123)
   if (!addressCache[type]) {
     const dataPath = path.join(__dirname, filePath)
     const stat = await fs.stat(dataPath)
@@ -33,7 +32,7 @@ router.get('/province', async (req, res) => {
       'Last-Modified': lastModified.toUTCString(),
     })
 
-    res.status(200).json({ success: true, data })
+    res.status(200).json({ success: true, data: Object.values(data) })
   } catch (e) {
     res.status(500).json({ success: false, message: e.message })
   }
@@ -41,8 +40,8 @@ router.get('/province', async (req, res) => {
 })
 
 //查询城市数据
-router.get('/city/:provinceId', async (req, res) => {
-  console.log(`查询${req.params.provinceId}下的城市数据开始......`)
+router.get('/city', async (req, res) => {
+  console.log(`查询${req.query.provinceId}下的城市数据开始......`)
   try {
     const { data, lastModified } = await loadData('../../data/city.json', 'city')
 
@@ -53,8 +52,8 @@ router.get('/city/:provinceId', async (req, res) => {
       'Last-Modified': lastModified.toUTCString(),
     })
 
-    const children = addressCache['province']['data'][req.params.provinceId].children
-    const result = children.map((child) => data[child.id])
+    const children = addressCache['province']['data'][req.query.provinceId].children
+    const result = children.map((child) => data[child])
 
     res.status(200).json({ success: true, data: result })
   } catch (e) {
@@ -64,8 +63,8 @@ router.get('/city/:provinceId', async (req, res) => {
 })
 
 //查询区｜县数据
-router.get('/district/:cityId', async (req, res) => {
-  console.log(`查询${req.params.cityId}下的区｜县数据开始......`)
+router.get('/district', async (req, res) => {
+  console.log(`查询${req.query.cityId}下的区｜县数据开始......`)
   try {
     const { data, lastModified } = await loadData('../../data/district.json', 'district')
 
@@ -76,8 +75,8 @@ router.get('/district/:cityId', async (req, res) => {
       'Last-Modified': lastModified.toUTCString(),
     })
 
-    const children = addressCache['city']['data'][req.params.cityId].children
-    const result = children.map((child) => data[child.id])
+    const children = addressCache['city']['data'][req.query.cityId].children
+    const result = children.map((child) => data[child])
 
     res.status(200).json({ success: true, data: result })
   } catch (e) {
@@ -87,8 +86,8 @@ router.get('/district/:cityId', async (req, res) => {
 })
 
 //查询街道|乡镇数据
-router.get('/county/:districtId', async (req, res) => {
-  console.log(`查询${req.params.districtId}下的街道|乡镇数据开始......`)
+router.get('/county', async (req, res) => {
+  console.log(`查询${req.query.districtId}下的街道|乡镇数据开始......`)
   try {
     const { data, lastModified } = await loadData('../../data/county.json', 'county')
 
@@ -99,8 +98,8 @@ router.get('/county/:districtId', async (req, res) => {
       'Last-Modified': lastModified.toUTCString(),
     })
 
-    const children = addressCache['district']['data'][req.params.districtId].children
-    const result = children.map((child) => data[child.id])
+    const children = addressCache['district']['data'][req.query.districtId].children
+    const result = children.map((child) => data[child])
 
     res.status(200).json({ success: true, data: result })
   } catch (e) {
