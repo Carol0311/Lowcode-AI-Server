@@ -2,17 +2,18 @@
   "name": "my-express",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write .",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "start": "node src/index.js",
-    "db:reset": "node scripts/resetDb.js",
-    "db:test": "node scripts/testDb.js",
-    "db:migrate": "npx knex migrate:make create_pages --knexfile knexfile.js",
-    "db:latest": "npx knex migrate:latest --knexfile knexfile.js"
+    "start": "ts-node --transpile-only src/index.ts",
+    "db:reset": "ts-node --transpile-only scripts/resetDb.ts",
+    "db:test": "ts-node --transpile-only scripts/testDb.ts",
+    "db:migrate": "npx knex migrate:make create_pages --knexfile src/db/knexfile.ts",
+    "db:latest": "npx knex migrate:latest --knexfile src/db/knexfile.ts"
   },
   "keywords": [],
   "author": "",
@@ -29,5 +30,12 @@
     "knex": "^3.1.0",
     "prettier": "^3.7.4",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

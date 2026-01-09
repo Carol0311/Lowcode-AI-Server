@@ -1,10 +1,11 @@
-const express = require('express')
-const cors = require('cors')
-require('dotenv').config()
+import express, { Request, Response } from 'express'
+import cors from 'cors'
+import dotenv from 'dotenv'
+import pageRoutes from './routes/page'
+import aiRoutes from './routes/ai'
+import addressRoutes from './routes/address'
 
-const pageRoutes = require('./routes/page')
-const aiRoutes = require('./routes/ai')
-const addressRoutes = require('./routes/address')
+dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -27,7 +28,7 @@ app.get('/health', (req, res) => {
 })
 
 //错误处理中间件
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: any) => {
   console.error(err.stack)
   res.status(500).json({ success: false, message: '服务器内部错误' })
 })
