@@ -41,8 +41,8 @@ exports.up = function (knex: Knex) {
     table.text('rootComponentIds').defaultTo('[]')
     table.json('components').defaultTo('{}')
     table.text('selectId').nullable()
-    table.timestamp('created_at').defaultTo(knex.fn.now())
-    table.timestamp('updated_at').defaultTo(knex.fn.now())
+    table.timestamp('create_at').defaultTo(knex.fn.now())
+    table.timestamp('update_at').defaultTo(knex.fn.now())
   })
 }
       

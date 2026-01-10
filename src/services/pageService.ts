@@ -41,7 +41,8 @@ class PageService {
   }
   async createOrUpdate(pageData: PageSchema, type: string) {
     const { id, name, rootComponentIds, components, selectId } = this.serialize(pageData)
-    if (id) {
+    const pageEntity = await db('pages').where({ id }).first()
+    if (pageEntity && pageEntity.id) {
       //update 已有页面
       await db('pages').where({ id }).update({
         name,
@@ -69,7 +70,7 @@ class PageService {
   //获取页面列表
   async getPageList(page = 1, pageSize = 10) {
     const offset = (page - 1) * pageSize
-    const [list, total] = await Promise.all([db('pages').select('id', 'name', 'rootComponentIds', 'components', 'selectId').orderBy('created_at', 'desc').limit(pageSize).offset(offset), db('pages').count('* as count').first()])
+    const [list, total] = await Promise.all([db('pages').select('id', 'name', 'rootComponentIds', 'components', 'selectId').orderBy('create_at', 'desc').limit(pageSize).offset(offset), db('pages').count('* as count').first()])
     const resultList = list.map((item: PageEntity) => this.deserialize(item))
     return {
       currentPage: resultList.length > 0 ? resultList[0]['id'] : '',
