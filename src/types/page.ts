@@ -65,5 +65,6 @@ export interface PageDeleteRequest {
 }
 export interface PageDeleteResponse {
   success: boolean
-  message?: string
+  message: string
+  type: string
 }

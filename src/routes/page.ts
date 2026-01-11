@@ -78,9 +78,9 @@ router.delete('/deletePage', async (req: Request<{}, {}, {}, PageDeleteRequest>,
   console.log(`删除页面${req.query.id}开始......`)
   try {
     await pageService.deletePage(req.query.id)
-    res.status(200).json({ success: true, message: '删除成功' })
+    res.status(200).json({ success: true, message: '删除成功', type: 'short' })
   } catch (e: any) {
-    res.status(500).json({ success: false, message: e.message })
+    res.status(500).json({ success: false, message: e.message, type: 'short' })
   }
   console.log(`删除页面${req.query.id}结束......`)
 })
