@@ -15,6 +15,11 @@ const knex_file = {
       directory: join(__dirname, '../../src/db/migrations'),
     },
     useNullAsDefault: true,
+    pool: {
+      afterCreate: (conn: any, done: any) => {
+        conn.run('PRAGMA foreign_keys = ON', done)
+      },
+    },
   },
 
   staging: {
@@ -27,6 +32,9 @@ const knex_file = {
     pool: {
       min: 2,
       max: 10,
+      afterCreate: (conn: any, done: any) => {
+        conn.run('PRAGAM foreign_keys = ON', done)
+      },
     },
     migrations: {
       tableName: 'knex_migrations',
@@ -43,6 +51,9 @@ const knex_file = {
     pool: {
       min: 2,
       max: 10,
+      afterCreate: (conn: any, done: any) => {
+        conn.run('PRAGAM foreign_keys = ON', done)
+      },
     },
     migrations: {
       tableName: 'knex_migrations',

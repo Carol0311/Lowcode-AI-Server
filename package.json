@@ -12,13 +12,22 @@
     "start": "ts-node --transpile-only src/index.ts",
     "db:reset": "ts-node --transpile-only scripts/resetDb.ts",
     "db:test": "ts-node --transpile-only scripts/testDb.ts",
-    "db:migrate": "npx knex migrate:make create_pages --knexfile src/db/knexfile.ts",
-    "db:latest": "npx knex migrate:latest --knexfile src/db/knexfile.ts"
+    "db:migrate:pages": "npx knex migrate:make create_pages --knexfile src/db/knexfile.ts",
+    "db:migrate:sessions": "npx knex migrate:make create_conversation_sessions --knexfile src/db/knexfile.ts",
+    "db:migrate:messages": "npx knex migrate:make create_conversation_messages --knexfile src/db/knexfile.ts",
+    "db:migrate:params": "npx knex migrate:make create_collected_params --knexfile src/db/knexfile.ts",
+    "db:migrate:categories": "npx knex migrate:make create_product_categories --knexfile src/db/knexfile.ts",
+    "db:migrate:columns": "npx knex migrate:make create_goods_column --knexfile src/db/knexfile.ts",
+    "db:migrate:instances": "npx knex migrate:make create_goods_instance --knexfile src/db/knexfile.ts",
+    "db:migrate:datas": "npx knex migrate:make create_goods_data --knexfile src/db/knexfile.ts",
+    "db:latest": "npx knex migrate:latest --knexfile src/db/knexfile.ts",
+    "db:seed:categories": "npx knex seed:run --specific=01_Product_Categories.ts --knexfile src/db/knexfile.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@node-rs/jieba": "^2.0.1",
     "axios": "^1.13.2",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
@@ -28,6 +37,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "express": "^4.22.1",
     "knex": "^3.1.0",
+    "openai": "^6.16.0",
     "prettier": "^3.7.4",
     "sqlite3": "^5.1.7"
   },
