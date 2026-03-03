@@ -11,6 +11,7 @@ export class RuleBasedExtractor {
         }
       }
     }
+
     return result
   }
 }

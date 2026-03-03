@@ -57,7 +57,7 @@ const formatQuestion = async (collect: any, param: string | null, step: string |
     question.value = stepEndQuestion[step as keyof typeof stepEndQuestion]
   }
   if (question.value.match('category')) {
-    question.value = question.value.replace('category', collect['category'])
+    question.value = question.value.replace('{category}', collect['category'])
   }
   if (question.value.match('skuList')) {
     question.type = 'select'
@@ -142,14 +142,17 @@ router.post('/continueChat', async (req: Request<{}, {}, {}, ChatRequest>, res: 
     // 2. 保存用户消息
     await sessionService.addMessage(sessionId, 'user', userInput)
 
+    // 4. 获取对话历史
+    const messageHistory = await sessionService.getMessageHistory(sessionId, 10)
+    const lastQuestion = messageHistory?.reverse().find((message) => message.role === 'assistant')
+
     // 3. 从用户输入中提取参数
-    const extractedParams = await paramExtractor.extract(userInput)
+    const extractedParams = await paramExtractor.extract(userInput, lastQuestion)
     for (const [key, value] of Object.entries(extractedParams)) {
       await sessionService.saveCollectedParam(sessionId, key, value)
     }
 
-    // 4. 获取对话历史和已收集参数
-    const messageHistory = await sessionService.getMessageHistory(sessionId, 10)
+    // 4. 已收集参数
     const collectedParams = await sessionService.getCollectedParams(sessionId)
 
     // 5. 判断是否完成

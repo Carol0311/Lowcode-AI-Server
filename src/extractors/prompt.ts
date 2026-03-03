@@ -41,7 +41,7 @@ export const promptConfig = {
   //卡在哪一步，卡在哪一个参数，该参数对应的问题,这一步执行结束，问什么问题
   validateStep: {
     init: ['category'],
-    basic: ['category', 'product', 'brand', 'price'],
+    basic: ['category', 'product_name', 'brand', 'price'],
     sku: ['sku'],
     b2b: ['b2bOrderUnit', 'minOrderQuantity', 'incrementUnit', 'maxOrderQuantity'],
     b2c: ['b2cOrderUnit', 'isLaunch', 'rebate'],
@@ -50,14 +50,14 @@ export const promptConfig = {
   stepEndQuestion: {
     init: '您好！我将帮助您创建{category}的商品档案。为了生成最适合的表单，我需要了解一些关键信息。\n\n首先，请告诉我这款商品的【商品名称】是什么？',
     basic: '好的，已录入商品基本信息。\n接下来录入扩展信息。{category}品类的商品，通常需要以下规格信息：\n{skuList}\n请依次提供规格的具体值',
-    sku: '这款商品是否需要B2B订货控制？\n- 如果需要批量采购管理，请告诉我【最小订货量】【单位增量】【最大订货量】\n- 如果不需要，请回复“跳过”',
+    sku: '这款商品是否需要B2B订货控制？\n- 如果需要批量采购管理，请依次告诉我【最小订货量】【单位增量】【最大订货量】\n- 如果不需要，请回复“跳过”',
     b2b: '是否需要在B2C平台销售？\n- 如果需要，请提供【直接返利百分比】（0-100）\n- 如果不需要，请回复“仅B2B”',
-    b2c: '这款商品有文字[商品描述]吗？\n如需协助生成商品文字描述，可回复"需要";如不需要介绍，可回复"跳过"',
+    b2c: '这款商品有文字【商品描述】吗？\n如需协助生成商品文字描述，可回复"需要";如不需要介绍，可回复"跳过"',
     detail: '我已经收集了以下信息：\n{summary}\n\n还有需要补充或修改的吗？如果没有，我将生成最终的表单配置。',
   },
   paramName: {
     category: '商品分类',
-    product: '商品名称',
+    product_name: '商品名称',
     brand: '品牌',
     price: '销售价',
     descDetail: '文字描述',
@@ -73,7 +73,7 @@ export const promptConfig = {
   },
   paramQuestion: {
     category: '您希望将这款商品归入哪个【商品分类】？(如:手机，服饰，美食)',
-    product: '请先告诉我这款商品的【商品名称】是什么？',
+    product_name: '请先告诉我这款商品的【商品名称】是什么？',
     brand: '它的【品牌】是什么？',
     price: '您希望它售价多少',
     descDetail: '这款商品有文字[商品描述]吗？\n如需协助生成商品文字描述，可回复"需要";如不需要介绍，可回复"跳过"',

@@ -43,7 +43,8 @@ process.on('uncaughtException', (error) => {
   console.error('未捕获的异常', error)
 })
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`服务器运行在 http://localhost:${PORT}`)
   console.log(`健康检查在 http://localhost:${PORT}/health`)
 })
+server.timeout = 5 * 60 * 100 //5min

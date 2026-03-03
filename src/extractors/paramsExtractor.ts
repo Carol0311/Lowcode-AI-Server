@@ -6,19 +6,20 @@ export class ParamExtractor {
   private nlpExtractor: LocalNlpExtractor
   private aiExtractor?: AIFallbackExtractor
 
-  constructor(aiApiKey?: string) {
+  constructor() {
     this.ruleExtractor = new RuleBasedExtractor()
     this.nlpExtractor = new LocalNlpExtractor()
-    if (aiApiKey) {
-      this.aiExtractor = new AIFallbackExtractor(aiApiKey)
-    }
+    this.aiExtractor = new AIFallbackExtractor()
   }
 
-  async extract(text: string): Promise<{
+  async extract(
+    text: string,
+    lastQuestion: string
+  ): Promise<{
     category?: string
     brand?: string
     sku?: string
-    product?: string
+    product_name?: string
     confidence: number
     method: 'rule' | 'nlp' | 'ai'
   }> {
@@ -33,19 +34,19 @@ export class ParamExtractor {
     }
 
     // 第二层：本地NLP
-    const nlpResult = this.nlpExtractor.extract(text)
+    /**const nlpResult = this.nlpExtractor.extract(text)
     if (this.isResultValid(nlpResult)) {
       return {
         ...nlpResult,
         confidence: 0.7,
         method: 'nlp',
       }
-    }
+    }*/
 
     // 第三层：AI兜底
     if (this.aiExtractor) {
       try {
-        const aiResult = await this.aiExtractor.extractWithAI(text)
+        const aiResult = await this.aiExtractor.extractWithAI(text, lastQuestion)
         return {
           ...aiResult,
           confidence: 0.95,
@@ -59,7 +60,7 @@ export class ParamExtractor {
     // 返回默认结果
     return {
       category: '通用商品',
-      product: this.extractGenericProductName(text),
+      product_name: this.extractGenericProductName(text),
       confidence: 0.3,
       method: 'rule',
     }
@@ -67,7 +68,7 @@ export class ParamExtractor {
 
   private isResultValid(result: any): boolean {
     // 至少提取到一个关键信息
-    return !!(result.category || result.brand || result.product)
+    return !!(result.category || result.brand || result.product_name)
   }
 
   private extractGenericProductName(text: string): string {
