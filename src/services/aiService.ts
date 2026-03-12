@@ -12,7 +12,7 @@ export interface PromptContext {
 const promptBuilder = new PromptBuilder()
 
 const openai = new OpenAI({
-  apiKey: process.env.DASHSCOPE_API_KEY,
+  apiKey: 'sk-6be572db650b4af09ebe917c2b1836cb', //process.env.DASHSCOPE_API_KEY,
   baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
 })
 
