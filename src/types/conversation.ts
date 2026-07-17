@@ -1,6 +1,12 @@
 export interface ChatRequest {
   userInput?: string
   sessionId: string
+  userId: string
+}
+export interface SessionRequest {
+  sessionId: string
+  userId: string
+  updateData: Record<string, any>
 }
 export interface ReplyData {
   reply: string
@@ -8,6 +14,25 @@ export interface ReplyData {
   progress: number
   schema?: Record<string, any>
   collectedParams?: Record<string, any>
+  templateInit?: Record<string, any> | null
+}
+export interface SessionListResponse {
+  success: boolean
+  message?: string
+  data?: {
+    list: any[]
+    total: number
+  }
+}
+export interface SessionResponse {
+  success: boolean
+  message?: string
+  data?: {
+    session: Record<string, any>
+    messages: any[]
+    params?: Record<string, any>
+    formId: string | null
+  }
 }
 export interface ChatResponse {
   success: boolean

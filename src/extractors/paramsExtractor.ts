@@ -13,8 +13,10 @@ export class ParamExtractor {
   }
 
   async extract(
+    sessionId: string,
     text: string,
-    lastQuestion: string
+    lastQuestion: string,
+    askKeys: string[]
   ): Promise<{
     category?: string
     brand?: string
@@ -24,8 +26,17 @@ export class ParamExtractor {
     method: 'rule' | 'nlp' | 'ai'
   }> {
     // 第一层：规则匹配
+    if (['跳过', '无', 'skip'].includes(text)) {
+      const ruleskip: Record<string, any> = {}
+      askKeys.forEach((v: string) => (ruleskip[v] = null))
+      return {
+        ...ruleskip,
+        confidence: 0.9,
+        method: 'rule',
+      }
+    }
     const ruleResult = this.ruleExtractor.extract(text)
-    if (this.isResultValid(ruleResult)) {
+    if (this.isResultValid(askKeys, ruleResult)) {
       return {
         ...ruleResult,
         confidence: 0.9,
@@ -46,7 +57,7 @@ export class ParamExtractor {
     // 第三层：AI兜底
     if (this.aiExtractor) {
       try {
-        const aiResult = await this.aiExtractor.extractWithAI(text, lastQuestion)
+        const aiResult = await this.aiExtractor.extractWithAI(sessionId, text, lastQuestion, askKeys)
         return {
           ...aiResult,
           confidence: 0.95,
@@ -66,9 +77,17 @@ export class ParamExtractor {
     }
   }
 
-  private isResultValid(result: any): boolean {
-    // 至少提取到一个关键信息
-    return !!(result.category || result.brand || result.product_name)
+  private isResultValid(askKeys: string[], result: any): boolean {
+    //问题中的参数信息有效提取了
+    let isCompleted = true
+    for (let i = 0; i < askKeys.length; i++) {
+      console.log(result.hasOwnProperty(askKeys[i]))
+      if (!result.hasOwnProperty(askKeys[i])) {
+        isCompleted = false
+        break
+      }
+    }
+    return isCompleted
   }
 
   private extractGenericProductName(text: string): string {

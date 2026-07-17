@@ -1,6 +1,7 @@
 import db from '../db/knex'
 
 export interface SessionData {
+  title: string
   current_step: string
   product_category: string
   is_completed: boolean
@@ -17,13 +18,13 @@ class SessionService {
   }
 
   // 获取或创建会话
-  async getOrCreateSession(sessionId: string, initialData?: Partial<SessionData>) {
+  async getOrCreateSession(userId: string, sessionId: string, initialData?: Partial<SessionData>) {
     // 检查是否存在
-    const existing = await db('conversation_sessions').where({ session_id: sessionId }).first()
+    const existing = await db('conversation_sessions').where({ user_id: userId, session_id: sessionId }).first()
 
     if (existing) {
       // 更新最后活动时间
-      await db('conversation_sessions').where({ session_id: sessionId }).update({
+      await db('conversation_sessions').where({ user_id: userId, session_id: sessionId }).update({
         last_active: db.fn.now(),
       })
       return existing
@@ -31,6 +32,7 @@ class SessionService {
 
     // 创建新会话
     await db('conversation_sessions').insert({
+      user_id: userId,
       session_id: sessionId,
       current_step: 'init',
       product_category: null,
@@ -42,9 +44,9 @@ class SessionService {
     return { session_id: sessionId, current_step: 'init', initMessage: '您好！我是智能商品助手\n请告诉我您想创建什么品类的商品？' }
   }
   //更新会话信息
-  async updateSession(sessionId: string, updateData: Partial<SessionData>) {
+  async updateSession(userId: string, sessionId: string, updateData: Partial<SessionData>) {
     try {
-      await db('conversation_sessions').where({ session_id: sessionId }).update(updateData)
+      await db('conversation_sessions').where({ user_id: userId, session_id: sessionId }).update(updateData)
     } catch (e: any) {
       console.log('更新会话信息出错', e.message)
     }
@@ -64,10 +66,30 @@ class SessionService {
     }
   }
 
+  async getSessionHistoryList(userId: string) {
+    const [list, total] = await Promise.all([
+      db('conversation_sessions').where({ user_id: userId }).select('session_id', 'user_id', 'title').orderBy('last_active', 'desc'),
+      db('conversation_sessions').where({ user_id: userId }).count('* as count').first(),
+    ])
+    return {
+      list,
+      total: Number(total?.count) || 0,
+    }
+  }
+
   // 获取对话历史（最近N条）
   async getMessageHistory(sessionId: string, limit: number = 20) {
     try {
-      const message = await db('conversation_messages').where({ session_id: sessionId }).select('role', 'content', 'metadata').orderBy('create_at').limit(limit)
+      const message = await db('conversation_messages').where({ session_id: sessionId }).select('role', 'content', 'metadata').orderBy('created_at', 'desc').limit(limit)
+      return message.reverse()
+    } catch (e: any) {
+      console.log('查询消息历史出错', e.message)
+    }
+  }
+  //获取目标对话记录
+  async getChatMessage(sessionId: string) {
+    try {
+      const message = await db('conversation_messages').where({ session_id: sessionId }).select('role', 'content', 'metadata').orderBy('created_at', 'asc')
       return message
     } catch (e: any) {
       console.log('查询消息历史出错', e.message)
@@ -111,11 +133,14 @@ class SessionService {
   }
 
   // 标记会话完成
-  async markSessionComplete(sessionId: string, finalSchema: any) {
+  async markSessionComplete(userId: string, sessionId: string, finalSchema: any, sessionInfo: Record<string, any>) {
     try {
-      await db('conversation_sessions').where({ session_id: sessionId }).update({
-        is_completed: 1,
-      })
+      await db('conversation_sessions')
+        .where({ user_id: userId, session_id: sessionId })
+        .update({
+          last_active: db.fn.now(),
+          ...sessionInfo,
+        })
 
       // 保存最终schema作为最后一条消息
       await this.addMessage(sessionId, 'system', 'CONVERSATION_COMPLETE', { final_schema: finalSchema })
@@ -134,9 +159,9 @@ class SessionService {
     }
   }
   //删除指定会话
-  async deleteConversation(sessionId: string) {
+  async deleteConversation(userId: string, sessionId: string) {
     try {
-      await db('conversation_sessions').where({ session_id: sessionId }).del()
+      await db('conversation_sessions').where({ user_id: userId, session_id: sessionId }).del()
     } catch (e: any) {
       console.log('删除指定会话出错', e.message)
     }
@@ -146,7 +171,7 @@ class SessionService {
     try {
       let spec = <any>[]
       const result = await db('product_categories').where({ id: category }).first()
-      if (category) {
+      if (result) {
         spec = JSON.parse(result.params) || []
         return spec.map((spec: any) => `${spec.label}`)
       }

@@ -24,8 +24,10 @@ export class AIFallbackExtractor {
   constructor(apiKey?: string) {}
 
   async extractWithAI(
+    sessionId: string,
     text: string,
-    lastQuestion: string
+    lastQuestion: string,
+    askKeys: string[]
   ): Promise<{
     category?: string
     brand?: string
@@ -33,9 +35,8 @@ export class AIFallbackExtractor {
     specs?: string[]
   }> {
     try {
-      const result = await aiService.getParamsFromInput(text, lastQuestion)
+      const result = await aiService.getParamsFromInput(sessionId, text, lastQuestion, askKeys)
       return result
-      return {}
     } catch (error) {
       console.error('AI提取失败:', error)
       return {}

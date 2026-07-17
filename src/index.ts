@@ -2,9 +2,9 @@ import express, { Request, Response } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import pageRoutes from './routes/page'
-import aiRoutes from './routes/ai'
 import addressRoutes from './routes/address'
 import conversationRoutes from './routes/conversation'
+import tableRoutes from './routes/table'
 
 dotenv.config()
 
@@ -15,9 +15,9 @@ app.use(cors())
 app.use(express.json())
 
 app.use('/api', pageRoutes)
-app.use('/api/ai', aiRoutes)
 app.use('/api/ai', conversationRoutes)
 app.use('/api', addressRoutes)
+app.use('/api/table', tableRoutes)
 
 app.get('/health', (req, res) => {
   console.log('health check')

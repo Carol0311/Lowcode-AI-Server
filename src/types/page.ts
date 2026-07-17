@@ -9,22 +9,44 @@ export interface ProjectSchema {
 //反序列化PageSchema
 export interface PageSchema {
   id: string
+  pageId: string
   name: string
   rootComponentIds: string[] //页面根节点id
   components: Record<string, ComponentSchema> //存放id-->nodes映射
   selectId?: string //当前选中组件id
-  create_at?: Date
-  update_at?: Date
+  service?: string
+  changeData?: Record<string, any>
+  created_at?: Date
+  updated_at?: Date
 }
 //序列化PageSchema
 export interface PageEntity {
   id: string
+  pageId: string
   name: string
   rootComponentIds: string
   components: string
   selectId?: string
-  create_at?: Date
-  update_at?: Date
+  service?: string
+  changeData?: string
+  created_at?: Date
+  updated_at?: Date
+}
+//反序列化FieldsSchema
+export interface FieldsSchema {
+  id: string
+  pageId: string
+  datas?: Record<string, any> //存放页面字段数据
+  created_at?: Date
+  updated_at?: Date
+}
+//序列化FieldsSchema
+export interface FieldsEntity {
+  id: string
+  pageId: string
+  datas?: string
+  created_at?: Date
+  updated_at?: Date
 }
 //获取页面列表
 export interface PageListRequest {
@@ -42,29 +64,45 @@ export interface PageListResponse {
 }
 //新增页面
 export interface CreatePageRequest {
-  id?: string
+  pageId?: string
   name: string
   rootComponentIds?: string[]
   components?: Record<string, ComponentSchema>
   selectId?: string
-  create_at?: Date
-  update_at?: Date
+  created_at?: Date
+  updated_at?: Date
 }
 export interface PageResponse {
   success: boolean
   message?: string
   data?: PageSchema
+  type?: string
+}
+export interface PageDataResponse {
+  success: boolean
+  message?: string
+  data?: FieldsSchema
+  type?: string
 }
 //获取页面详情
 export interface PageDetlRequest {
-  id: string
+  pageId: string
+  id?: string
 }
 //删除页面
 export interface PageDeleteRequest {
+  pageId?: string
   id: string
 }
 export interface PageDeleteResponse {
   success: boolean
   message: string
   type: string
+}
+//按钮点击事件
+export interface ButtonClickRequest {
+  id: string
+  pageId: string
+  service: string
+  datas?: Record<string, any>
 }
