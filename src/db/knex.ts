@@ -1,5 +1,6 @@
 import knex from 'knex'
 import knex_file from './knexfile'
+//前期使用sqlite3,之后数据库复杂度提升转换成postgresql
 const config = knex_file.development
 //创建数据库连接实例
 const db = knex(config)

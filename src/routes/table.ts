@@ -13,15 +13,12 @@ router.post('/initTable', async (req: Request<{}, {}, CreateTableRequest>, res: 
     const instanceData = req.body
     //创建表格实例
     instance_result = await tableService.createOrUpdateTableInstance(instanceData)
-    if (SYSTEM_TABLE_INSTANCE_LIST.includes(instance_result.instanceId)) {
-      columns_result = await tableService.setDefaultTableData(instance_result.instanceId)
-    } else {
+    if (instanceData.columns) {
       //初始化表格实例对应的列字段配置
       columns_result = await tableService.initTableColumns(instance_result.instanceId, instanceData.columns)
     }
-    if (instance_result && columns_result) {
-      res.status(200).json({ success: true, data: { tableConfig: instance_result, columns: columns_result } })
-    }
+    const result = await tableService.getTableConfig(instance_result.instanceId, instance_result.tableId, instance_result.pageId)
+    res.status(200).json({ success: true, data: result })
   } catch (e: any) {
     res.status(500).json({ success: false, message: e.message })
   }
@@ -57,18 +54,24 @@ router.post('deleteRow', async (req: Request<{}, {}, DeleteRowRequest>, res: Res
 })
 
 router.post('/updateTableConfig', async (req: Request<{}, {}, UpdateTableRequest>, res: Response<TableResponse>) => {
-  console.log('更新列表配置开始...')
+  console.log('更新表格配置开始...')
   try {
-    const { instanceId, tableId, pageId, columns } = req.body
+    const instanceData = req.body
     //更新表格实例
-    const result = await tableService.createOrUpdateTableInstance({ pageId, tableId, instanceId })
-    if (result) {
-      result.status(200).json({ success: true, data: result })
+    if (instanceData.tableConfig) {
+      const { tableConfig, ...others } = instanceData
+      await tableService.createOrUpdateTableInstance({ ...others, ...tableConfig })
     }
+    if (instanceData.columns) {
+      //更新列配置
+      await tableService.initTableColumns(instanceData.instanceId, instanceData.columns)
+    }
+    const result = await tableService.getTableConfig(instanceData.instanceId, instanceData.tableId, instanceData.pageId)
+    res.status(200).json({ success: true, data: result })
   } catch (e: any) {
     res.status(500).json({ success: false, message: e.message })
   }
-  console.log('更新列表配置结束...')
+  console.log('更新表格配置结束...')
 })
 
 router.post('/loadTableConfig', async (req: Request<{}, {}, UpdateTableRequest>, res: Response<TableResponse>) => {

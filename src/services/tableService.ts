@@ -1,7 +1,7 @@
 import db from '../db/knex'
 import { system_default_columns, SYSTEM_DEFAULT_TABLE_INSTANCE, SYSTEM_TABLE_INSTANCE_LIST, SYSTEM_DEFAULT_TABLE_ROWS } from '../db/defaultData'
 import { createInsertTask } from '../utils/tableTaskEmitter'
-import { serialize, deserialize } from '../utils/index'
+import { serialize, deserialize, generateUniqueId } from '../utils/index'
 class TableService {
   private static instance: TableService
   static getInstance() {
@@ -21,37 +21,33 @@ class TableService {
       name,
     } as Record<string, any>
 
-    if (instanceId) {
-      insertData['instanceId'] = instanceId
-      insertData['updated_at'] = db.fn.now()
-    } else {
-      insertData['instanceId'] = `${instanceKey}_instance`
-      insertData['created_at'] = db.fn.now()
-    }
-
     additional.forEach((key) => {
       if (instanceData.hasOwnProperty(key)) {
         insertData[key] = instanceData[key]
       }
     })
+    insertData = serialize(insertData)
+
+    if (instanceId) {
+      insertData['instanceId'] = instanceId
+      insertData['updated_at'] = db.fn.now()
+    } else if (instanceKey) {
+      insertData['instanceId'] = `${instanceKey}_instance`
+      insertData['created_at'] = db.fn.now()
+    } else {
+      insertData['instanceId'] = generateUniqueId('Instance')
+      insertData['created_at'] = db.fn.now()
+    }
 
     //插入更新配置数据
     const test = await db('table_instance').insert(insertData).onConflict(['tableId']).merge()
 
-    //获取配置数据
-    const result = await db('table_instance').where({ tableId }).select('*').first()
+    const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
 
-    const final_config = deserialize(result)
-
-    const table_name = SYSTEM_TABLE_INSTANCE_LIST.includes(result.instanceId) ? SYSTEM_DEFAULT_TABLE_ROWS : 'table_rows'
-    const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(result.instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : result.instanceId
-    //取出总条数
-    const total = await db(table_name).where({ instanceId: actual_instance_id }).count('* as count').first()
-
-    return { ...final_config, totalCounts: Number(total?.count) || 0 }
+    return { instanceId: actual_instance_id, tableId, pageId }
   }
   async setDefaultTableData(instanceId: string) {
-    const is_Columns_Exist = await db('table_columns').where({ instanceId }).count('* as count').first()
+    /**const is_Columns_Exist = await db('table_columns').where({ instanceId }).count('* as count').first()
     if (is_Columns_Exist && Number(is_Columns_Exist.count as string) === 0) {
       //table_columns存在并且默认数据为空，则插入系统预置数据
       const columns = system_default_columns.map((column) => {
@@ -65,23 +61,33 @@ class TableService {
     if (is_Rows_Exist && Number(is_Rows_Exist.count as string) === 0) {
       //system_table_rows表格存在并且默认数据为空，则插入系统预置数据
       createInsertTask()
-    }
+    }*/
 
-    const result = await db('table_columns').where({ instanceId }).select('*')
+    const result = await db('table_columns').where({ instanceId }).select('*').orderBy('sortOrder', 'asc')
+    if (!result) return []
     const final_columns = result.map((column) => deserialize(column))
     return final_columns
   }
   //创建或更新关联表格实例的列配置表
   async initTableColumns(instanceId: string, columns: any) {
-    const finalColumns = columns.map((item: Record<string, any>) => {
+    if (!columns) return []
+
+    //先删除再整体替换更新
+    const isExits = await db('table_columns').where({ instanceId }).first()
+    if (isExits && !SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId)) {
+      await db('table_columns').where({ instanceId }).del()
+    }
+
+    const finalColumns = columns.map((item: Record<string, any>, index: number) => {
       let result = { instanceId: instanceId } as Record<string, any>
       item.key ? (result['updated_at'] = db.fn.now()) : (result['created_at'] = db.fn.now())
-      return { ...result, ...item }
+      return { ...result, ...item, sortOrder: index }
     })
 
-    await db('table_columns').insert(finalColumns).onConflict(['instanceId', 'key']).merge(['name', 'type', 'props'])
+    await db('table_columns').insert(finalColumns).onConflict(['instanceId', 'key']).merge(['name', 'type', 'props', 'sortOrder'])
 
-    const result = await db('table_columns').where({ instanceId }).select('*')
+    const result = await db('table_columns').where({ instanceId }).select('*').orderBy('sortOrder', 'asc')
+    if (!result) return []
 
     const final_columns = result.map((column) => deserialize(column))
     return final_columns
@@ -165,13 +171,21 @@ class TableService {
 
   //查询表格配置数据
   async getTableConfig(instanceId: string, tableId: string, pageId: string) {
-    const [config, columns] = await Promise.all([db('table_instance').where({ instanceId, pageId, tableId }).select('*').first(), db('table_columns').where({ instanceId }).select('*')])
+    const [config, columns = []] = await Promise.all([
+      db('table_instance').where({ instanceId, pageId, tableId }).select('*').first(),
+      db('table_columns').where({ instanceId }).select('*').orderBy('sortOrder', 'asc'),
+    ])
 
     const final_config = deserialize(config)
     const final_columns = columns.map((column) => deserialize(column))
 
+    const table_name = SYSTEM_TABLE_INSTANCE_LIST.includes(final_config.instanceId) ? SYSTEM_DEFAULT_TABLE_ROWS : 'table_rows'
+    const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(final_config.instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : final_config.instanceId
+    //取出总条数
+    const total = await db(table_name).where({ instanceId: actual_instance_id }).count('* as count').first()
+
     return {
-      tableConfig: final_config,
+      tableConfig: { ...final_config, totalCounts: Number(total?.count) || 0 },
       columns: final_columns,
     }
   }
@@ -186,6 +200,7 @@ class TableService {
       .select('data', 'rowCode', 'rowName', 'sortOrder')
       .orderBy('sortOrder', 'asc')
       .limit(limit)
+    if (!result) return { rows: [], total: 0 }
     //result再处理
     let total
     const final_result = result.map((item) => {
@@ -228,7 +243,7 @@ class TableService {
      * limit=0取出目标分组所有行数据
      * limit>0取出目标分组limit条数的行数据
      */
-    const [result, counts] = await Promise.all([limit > 0 ? query.clone().orderBy('sortOrder').limit(limit) : query.clone().orderBy('sortOrder'), query.clone().count('* as count').first()])
+    const [result = [], counts] = await Promise.all([limit > 0 ? query.clone().orderBy('sortOrder').limit(limit) : query.clone().orderBy('sortOrder'), query.clone().count('* as count').first()])
 
     //result再处理
     const final_result = result.map((item) => {

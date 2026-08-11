@@ -4,59 +4,34 @@
  * @type { Object.<string, import("knex").Knex.Config> }
  */
 import { join } from 'path'
-const projectRoot = process.cwd()
+
+const baseConfig = {
+  migrations: {
+    directory: join(__dirname, '../../src/db/migrations'),
+  },
+  pool: {
+    afterCreate: (conn: any, done: any) => {
+      //开启外键约束
+      conn.run('PRAGMA foreign_keys = ON', done)
+    },
+  },
+}
 const knex_file = {
   development: {
+    ...baseConfig,
     client: 'sqlite3',
     connection: {
       filename: join(__dirname, '../../data/lowcode.db'),
     },
-    migrations: {
-      directory: join(__dirname, '../../src/db/migrations'),
-    },
     useNullAsDefault: true,
-    pool: {
-      afterCreate: (conn: any, done: any) => {
-        conn.run('PRAGMA foreign_keys = ON', done)
-      },
-    },
   },
-
-  staging: {
-    client: 'postgresql',
-    connection: {
-      database: 'my_db',
-      user: 'username',
-      password: 'password',
-    },
-    pool: {
-      min: 2,
-      max: 10,
-      afterCreate: (conn: any, done: any) => {
-        conn.run('PRAGAM foreign_keys = ON', done)
-      },
-    },
-    migrations: {
-      tableName: 'knex_migrations',
-    },
-  },
-
   production: {
+    ...baseConfig,
     client: 'postgresql',
     connection: {
       database: 'my_db',
       user: 'username',
       password: 'password',
-    },
-    pool: {
-      min: 2,
-      max: 10,
-      afterCreate: (conn: any, done: any) => {
-        conn.run('PRAGAM foreign_keys = ON', done)
-      },
-    },
-    migrations: {
-      tableName: 'knex_migrations',
     },
   },
 }

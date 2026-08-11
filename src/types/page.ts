@@ -6,7 +6,6 @@ export interface ProjectSchema {
   pages: Record<string, PageSchema>
   homePageId: string
 }
-//反序列化PageSchema
 export interface PageSchema {
   id: string
   pageId: string
@@ -16,35 +15,14 @@ export interface PageSchema {
   selectId?: string //当前选中组件id
   service?: string
   changeData?: Record<string, any>
+  isSystem: boolean
   created_at?: Date
   updated_at?: Date
 }
-//序列化PageSchema
-export interface PageEntity {
-  id: string
-  pageId: string
-  name: string
-  rootComponentIds: string
-  components: string
-  selectId?: string
-  service?: string
-  changeData?: string
-  created_at?: Date
-  updated_at?: Date
-}
-//反序列化FieldsSchema
 export interface FieldsSchema {
   id: string
   pageId: string
   datas?: Record<string, any> //存放页面字段数据
-  created_at?: Date
-  updated_at?: Date
-}
-//序列化FieldsSchema
-export interface FieldsEntity {
-  id: string
-  pageId: string
-  datas?: string
   created_at?: Date
   updated_at?: Date
 }
@@ -63,15 +41,6 @@ export interface PageListResponse {
   }
 }
 //新增页面
-export interface CreatePageRequest {
-  pageId?: string
-  name: string
-  rootComponentIds?: string[]
-  components?: Record<string, ComponentSchema>
-  selectId?: string
-  created_at?: Date
-  updated_at?: Date
-}
 export interface PageResponse {
   success: boolean
   message?: string

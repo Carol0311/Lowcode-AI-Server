@@ -12,9 +12,11 @@ async function test() {
       tables.map((t: any) => t.name)
     )
 
+    const id = generatePageId()
     //测试插入
     await db('pages').insert({
-      id: generatePageId(),
+      id,
+      pageId: id,
       name: '测试页面',
       rootComponentIds: JSON.stringify([]),
       components: JSON.stringify({}),

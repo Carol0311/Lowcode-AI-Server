@@ -3,19 +3,7 @@
  */
 import express, { Request, Response } from 'express'
 import { pageService } from '../services/pageService'
-import {
-  PageListRequest,
-  PageListResponse,
-  PageSchema,
-  FieldsSchema,
-  PageResponse,
-  PageDataResponse,
-  CreatePageRequest,
-  PageDetlRequest,
-  PageDeleteRequest,
-  PageDeleteResponse,
-  ButtonClickRequest,
-} from '../types/page'
+import { PageListRequest, PageListResponse, PageSchema, FieldsSchema, PageResponse, PageDataResponse, PageDetlRequest, PageDeleteRequest, PageDeleteResponse } from '../types/page'
 
 const router = express.Router()
 
@@ -74,8 +62,8 @@ router.post('/updatePageInfo', async (req: Request<{}, {}, PageSchema>, res: Res
 })
 
 //获取单个页面详情
-router.post('/getPageDetail', async (req: Request<{}, {}, PageSchema>, res: Response<PageResponse>) => {
-  console.log(`获取页面${req.query.id}详情开始......`)
+router.post('/getPageDetail', async (req: Request<{}, {}, PageDetlRequest>, res: Response<PageResponse>) => {
+  console.log(`获取页面${req.body.id}详情开始......`)
   try {
     const pageData = req.body
     const page = await pageService.getPageDetail(pageData)
@@ -87,7 +75,7 @@ router.post('/getPageDetail', async (req: Request<{}, {}, PageSchema>, res: Resp
   } catch (e: any) {
     res.status(500).json({ success: false, message: e.message })
   }
-  console.log(`获取页面${req.query.id}详情结束......`)
+  console.log(`获取页面${req.body.id}详情结束......`)
 })
 
 //删除页面

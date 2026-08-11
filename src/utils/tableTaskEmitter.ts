@@ -10,22 +10,28 @@ const taskQueue: Array<{
   status: 'pending' | 'processing' | 'completed' | 'failed'
   progress: number
   error?: string
+  resolve: any
+  reject: any
 }> = []
 
 // 创建插入任务
 export async function createInsertTask() {
-  const taskId = `task_${Date.now()}`
+  return new Promise((resolve, reject) => {
+    const taskId = `task_${Date.now()}`
 
-  taskQueue.push({
-    taskId,
-    status: 'pending',
-    progress: 0,
+    taskQueue.push({
+      taskId,
+      status: 'pending',
+      progress: 0,
+      resolve,
+      reject,
+    })
+
+    // 触发后台处理
+    taskEmitter.emit('process-task', taskId)
   })
 
-  // 触发后台处理
-  taskEmitter.emit('process-task', taskId)
-
-  return taskId
+  //return taskId
 }
 
 // 后台处理器
@@ -63,10 +69,17 @@ taskEmitter.on('process-task', async (taskId: string) => {
     task.status = 'completed'
     task.progress = 100
     console.log(`系统表格数据插入任务 ${taskId} 完成！`)
+
+    if (task.resolve) {
+      task.resolve()
+    }
   } catch (error: any) {
     task.status = 'failed'
     task.error = error.message
     console.error(`系统表格数据插入任务 ${taskId} 失败:`, error)
+    if (task.reject) {
+      task.reject(new Error(error.message))
+    }
   }
 })
 

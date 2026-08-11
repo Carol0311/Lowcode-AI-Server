@@ -9,6 +9,7 @@ export interface UpdateTableRequest {
   tableId: string
   pageId: string
   columns: any[]
+  tableConfig?: Record<string, any>
 }
 export interface TableResponse {
   success: boolean
