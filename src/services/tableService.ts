@@ -40,9 +40,9 @@ class TableService {
     }
 
     //插入更新配置数据
-    const test = await db('table_instance').insert(insertData).onConflict(['tableId']).merge()
+    await db('table_instance').insert(insertData).onConflict(['tableId']).merge()
 
-    const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
+    const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(insertData.instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : insertData.instanceId
 
     return { instanceId: actual_instance_id, tableId, pageId }
   }
