@@ -57,7 +57,7 @@ class AIService {
     const prompt = await promptBuilder.build(context)
 
     const completions = await AIService.openai.chat.completions.create({
-      model: 'qwen-plus',
+      model: 'qwen3.8-flash',
       messages: [
         { role: 'system', content: '' },
         { role: 'user', content: '' },
@@ -71,7 +71,16 @@ class AIService {
   extractAskKeys(userInput: string, askKeys: string[]) {
     let obj = {} as Record<string, any>
     if (askKeys.includes('sku')) {
-      obj['sku'] = userInput.trim().split(' ')
+      // 清理可能包含的markdown代码块标记
+      let param = userInput.replace(/```json\s*/g, '')
+      param = param.replace(/```\s*/g, '')
+      param = param.trim()
+
+      // 移除所有换行符和制表符
+      param = param.replace(/[\n\r\t]/g, '')
+
+      obj['sku'] = param.trim().split(' ')
+      console.log('sku参数是', obj['sku'])
     }
     if (userInput.match(/跳过/)) {
       if (askKeys.includes('b2bOrderUnit')) {
@@ -128,7 +137,7 @@ class AIService {
     ${summary}`
 
     const response = await AIService.openai.chat.completions.create({
-      model: 'deepseek-v4-flash',
+      model: 'qwen3.8-flash',
       messages: [
         { role: 'system', content: '你是一个专业的电商文案写手，只输出商品档案标题摘要。' },
         { role: 'user', content: prompt },
@@ -139,7 +148,8 @@ class AIService {
     return response.choices[0].message.content?.trim()
   }
   async generateDetlText(params: Record<string, any>, style: string) {
-    const summary = getParamsSummary(params)
+    const { brand, category, price, product_name, sku, rebate } = params
+    const summary = getParamsSummary({ brand, category, price, product_name, sku, rebate })
     const styleMap = {
       professional: '使用专业、客观的语气，突出产品规格和技术参数',
       marketing: '使用有吸引力、营销化的语气，突出产品卖点和用户价值',
@@ -156,13 +166,13 @@ class AIService {
     - ${styleMap[style] || styleMap.professional}
     - 只能根据提供的参数${params}生成详情描述，不要编造用户未提供的信息
     - 描述应连贯自然，不要分点列举
-    - 控制在80-150字之间
+    - 控制在50-100字之间
     - 只返回描述文本，不要有任何额外说明或格式标记
 
     请直接输出商品描述：`
 
     const response = await AIService.openai.chat.completions.create({
-      model: 'deepseek-v4-flash',
+      model: 'qwen3.7-flash',
       messages: [
         { role: 'system', content: '你是一个专业的电商文案写手，只输出商品描述文本。' },
         { role: 'user', content: prompt },
@@ -213,7 +223,7 @@ class AIService {
            - 只返回能确定的字段，不确定的字段不要返回`
 
     const response = await AIService.openai.chat.completions.create({
-      model: 'deepseek-v4-flash',
+      model: 'qwen3.8-flash',
       messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: userInput },

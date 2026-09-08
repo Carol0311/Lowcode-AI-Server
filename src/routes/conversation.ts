@@ -160,7 +160,8 @@ router.get('/getChat', async (req: Request<{}, {}, {}, ChatRequest>, res: Respon
 
     const categoryKey = getCategoryKey(params.category)
 
-    const page = await pageService.getPageDetail({ pageId: `AI_GOODSFORM_CATEGORY_${categoryKey}` } as PageSchema)
+    //const page = await pageService.getPageDetail({ pageId: `AI_GOODSFORM_CATEGORY_${categoryKey}` } as PageSchema)
+    //const list = await pageService.getPageDetail({ pageId: `AI_GOODSLIST_CATEGORY_${categoryKey}` } as PageSchema)
 
     res.status(200).json({
       success: true,
@@ -168,7 +169,8 @@ router.get('/getChat', async (req: Request<{}, {}, {}, ChatRequest>, res: Respon
         session,
         messages: messages || [],
         params,
-        formId: page?.id || null,
+        formId: `AI_GOODSFORM_CATEGORY_${categoryKey}`,
+        listId: `AI_GOODSLIST_CATEGORY_${categoryKey}`,
       },
     })
   } catch (e: any) {

@@ -81,6 +81,9 @@ class TableService {
     const finalColumns = columns.map((item: Record<string, any>, index: number) => {
       let result = { instanceId: instanceId } as Record<string, any>
       item.key ? (result['updated_at'] = db.fn.now()) : (result['created_at'] = db.fn.now())
+      if (item.props && typeof item.props === 'object') {
+        item.props = JSON.stringify(item.props)
+      }
       return { ...result, ...item, sortOrder: index }
     })
 
@@ -95,7 +98,7 @@ class TableService {
 
   //更新插入表格行数据
   async upsertRow(rowData: Record<string, any>, position?: number) {
-    const { rowId, instanceId, rowCode, rowName, ...data } = rowData
+    const { rowId, instanceId, rowCode, rowName, data } = rowData
     if (!instanceId) {
       throw new Error('instanceId is required')
     }
@@ -107,8 +110,8 @@ class TableService {
     const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
 
     const lastRow = await db(table_name).where({ instanceId: actual_instance_id }).count('* as count').first()
-    const maxOrder = Number(lastRow?.count) || 0
-    //默认是末尾插入
+    const maxOrder = lastRow?.count ? Number(lastRow?.count) : -1
+    //默认是末尾插入 空表格从序号0开始
     let sortOrder = maxOrder + 1
 
     if (position || position === 0) {
