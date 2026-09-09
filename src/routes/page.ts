@@ -63,7 +63,7 @@ router.post('/updatePageInfo', async (req: Request<{}, {}, PageSchema>, res: Res
 
 //获取单个页面详情
 router.post('/getPageDetail', async (req: Request<{}, {}, PageDetlRequest>, res: Response<PageResponse>) => {
-  console.log(`获取页面${req.body.id}详情开始......`)
+  console.log(`获取页面${req.body.id || req.body.pageId}详情开始......`)
   try {
     const pageData = req.body
     const page = await pageService.getPageDetail(pageData)
@@ -75,7 +75,7 @@ router.post('/getPageDetail', async (req: Request<{}, {}, PageDetlRequest>, res:
   } catch (e: any) {
     res.status(500).json({ success: false, message: e.message })
   }
-  console.log(`获取页面${req.body.id}详情结束......`)
+  console.log(`获取页面${req.body.id || req.body.pageId}详情结束......`)
 })
 
 //删除页面
@@ -92,7 +92,7 @@ router.delete('/deletePage', async (req: Request<{}, {}, {}, PageDeleteRequest>,
 
 //获取页面数据
 router.post('/loadPageData', async (req: Request<{}, {}, FieldsSchema>, res: Response<PageDataResponse>) => {
-  console.log(`获取页面${req.query.id}数据开始......`)
+  console.log(`获取页面${req.body.id || req.body.pageId}数据开始......`)
   try {
     const pageData = req.body
     const data = await pageService.loadPageData(pageData)
@@ -104,7 +104,7 @@ router.post('/loadPageData', async (req: Request<{}, {}, FieldsSchema>, res: Res
   } catch (e: any) {
     res.status(500).json({ success: false, message: e.message })
   }
-  console.log(`获取页面${req.query.id}数据结束......`)
+  console.log(`获取页面${req.body.id || req.body.pageId}数据结束......`)
 })
 
 //更新页面字段数据

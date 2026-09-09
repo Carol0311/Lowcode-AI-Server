@@ -9,13 +9,12 @@ router.post('/initTable', async (req: Request<{}, {}, CreateTableRequest>, res: 
   console.log('创建列表实例开始...')
   try {
     let instance_result
-    let columns_result
     const instanceData = req.body
     //创建表格实例
     instance_result = await tableService.createOrUpdateTableInstance(instanceData)
     if (instanceData.columns) {
       //初始化表格实例对应的列字段配置
-      columns_result = await tableService.initTableColumns(instance_result.instanceId, instanceData.columns)
+      await tableService.initTableColumns(instance_result.instanceId, instanceData.columns)
     }
     const result = await tableService.getTableConfig(instance_result.instanceId, instance_result.tableId, instance_result.pageId)
     res.status(200).json({ success: true, data: result })

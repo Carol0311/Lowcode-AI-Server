@@ -10,7 +10,6 @@
     "format": "prettier --write .",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "start": "ts-node --transpile-only src/index.ts",
-    "db:reset1": "ts-node --transpile-only scripts/resetDb.ts",
     "db:reset": "ts-node --transpile-only scripts/resetModuleDb.ts",
     "db:reset:all": "npm run db:reset",
     "db:reset:ai": "npm run db:reset -- ai",

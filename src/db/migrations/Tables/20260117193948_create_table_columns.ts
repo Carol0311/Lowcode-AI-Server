@@ -27,7 +27,7 @@ exports.up = function (knex: Knex) {
     table.enu('type', columnTypes).notNullable()
     table.integer('sortOrder').defaultTo(0) //列顺序
 
-    table.jsonb('props').defaultTo(defaultPropsStr)
+    table.jsonb('props').defaultTo(knex.raw('?', [defaultPropsStr]))
 
     table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now())
     table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now())
