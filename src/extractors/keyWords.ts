@@ -17,6 +17,7 @@ export const KeyWords = {
     小米: ['小米', 'mi', '红米'],
     耐克: ['耐克', 'nike'],
     阿迪达斯: ['阿迪', 'adidas'],
+    vivo: ['vivo'],
   },
   //商品规格
   /**sku: {

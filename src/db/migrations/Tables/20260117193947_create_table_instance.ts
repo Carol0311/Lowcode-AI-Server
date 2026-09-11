@@ -36,7 +36,8 @@ exports.up = function (knex: Knex) {
 
     // ========== 来源 ==========
     table.string('source', 32).defaultTo('system') // 'system' | 'ai' | 'user'
-    table.string('session_id', 64).nullable().references('session_id').inTable('conversation_sessions').onDelete('CASCADE') // AI对话会话ID
+    //session对话删除，关联的数据session_id置空，数据不删除
+    table.string('session_id', 64).nullable().references('session_id').inTable('conversation_sessions').onDelete('SET NULL') // AI对话会话ID
 
     // ========== 元数据 ==========
     table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now())

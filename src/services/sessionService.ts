@@ -80,7 +80,7 @@ class SessionService {
   // 获取对话历史（最近N条）
   async getMessageHistory(sessionId: string, limit: number = 20) {
     try {
-      const message = await db('conversation_messages').where({ session_id: sessionId }).select('role', 'content', 'metadata').orderBy('created_at', 'desc').limit(limit)
+      const message = await db('conversation_messages').where({ session_id: sessionId }).select('id', 'role', 'content', 'metadata').orderBy('created_at', 'desc').orderBy('id', 'desc').limit(limit)
       return message.reverse()
     } catch (e: any) {
       console.log('查询消息历史出错', e.message)
@@ -89,7 +89,7 @@ class SessionService {
   //获取目标对话记录
   async getChatMessage(sessionId: string) {
     try {
-      const message = await db('conversation_messages').where({ session_id: sessionId }).select('role', 'content', 'metadata').orderBy('created_at', 'asc')
+      const message = await db('conversation_messages').where({ session_id: sessionId }).select('role', 'content', 'metadata').orderBy('created_at', 'asc').orderBy('id', 'asc')
       return message
     } catch (e: any) {
       console.log('查询消息历史出错', e.message)

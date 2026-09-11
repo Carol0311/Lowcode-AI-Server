@@ -146,7 +146,7 @@ export const filterParams = (collectedParams: any) => {
   const finalParams = <any>{}
   for (let k in collectedParams) {
     const value = collectedParams[k]
-    if (value !== 'skip') {
+    if (value !== 'skip' && value !== 'null') {
       finalParams[k] = value === true ? '是' : value === false ? '否' : value
     }
   }

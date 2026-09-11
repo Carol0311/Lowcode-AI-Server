@@ -59,9 +59,10 @@ export class ParamExtractor {
       try {
         const aiResult = await this.aiExtractor.extractWithAI(sessionId, text, lastQuestion, askKeys)
         return {
-          ...aiResult,
+          ...ruleResult,
           confidence: 0.95,
           method: 'ai',
+          ...aiResult,
         }
       } catch (error) {
         console.warn('AI提取失败，使用备用结果')
@@ -81,7 +82,6 @@ export class ParamExtractor {
     //问题中的参数信息有效提取了
     let isCompleted = true
     for (let i = 0; i < askKeys.length; i++) {
-      console.log(result.hasOwnProperty(askKeys[i]))
       if (!result.hasOwnProperty(askKeys[i])) {
         isCompleted = false
         break

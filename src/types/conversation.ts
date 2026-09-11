@@ -31,8 +31,8 @@ export interface SessionResponse {
     session: Record<string, any>
     messages: any[]
     params?: Record<string, any>
-    formId: string | null
-    listId?: string | null
+    formPageId: string | null
+    listPageId?: string | null
   }
 }
 export interface ChatResponse {

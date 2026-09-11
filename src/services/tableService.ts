@@ -21,11 +21,16 @@ class TableService {
       name,
     } as Record<string, any>
 
-    additional.forEach((key) => {
+    for (let i = 0; i < additional.length; i++) {
+      const key = additional[i]
       if (instanceData.hasOwnProperty(key)) {
+        if (key === 'session_id' && !instanceData.isAICreate) {
+          //非初次AI会话创建instance，不更新session_id
+          continue
+        }
         insertData[key] = instanceData[key]
       }
-    })
+    }
     insertData = serialize(insertData)
 
     if (instanceId) {
@@ -110,9 +115,9 @@ class TableService {
     const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
 
     const lastRow = await db(table_name).where({ instanceId: actual_instance_id }).count('* as count').first()
-    const maxOrder = lastRow?.count ? Number(lastRow?.count) : -1
+    const maxOrder = lastRow?.count ? Number(lastRow?.count) : 0
     //默认是末尾插入 空表格从序号0开始
-    let sortOrder = maxOrder + 1
+    let sortOrder = maxOrder
 
     if (position || position === 0) {
       //目标位置插入
@@ -152,11 +157,29 @@ class TableService {
 
   //删除行数据
   async deleteRow(instanceId: string, rowCode: string) {
+    //let deleteRow
+    //let table_name
+    //let actual_instance_id
     //找到目标删除行
+    /**if (sessionId) {
+      deleteRow = await db('table_rows').where({ session_id: sessionId }).first()
+      if (!deleteRow) {
+        return {
+          action: 'afterDeleteRow',
+          start: -1,
+        }
+      }
+      instanceId = deleteRow.instanceId
+      rowCode = deleteRow.rowCode
+      table_name = 'table_rows'
+      actual_instance_id = deleteRow.instanceId
+    } else {**/
     const table_name = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_ROWS : 'table_rows'
     const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
 
     const deleteRow = await db(table_name).where({ instanceId, rowCode }).first()
+    //}
+
     if (!deleteRow) {
       throw new Error(`Row with rowcode ${rowCode} not found`)
     }
@@ -164,7 +187,7 @@ class TableService {
     //删除目标行
     await db(table_name).where({ instanceId: actual_instance_id, rowCode }).del()
     //目标行后面的数据前移一位
-    await db(table_name).where({ instanceId: actual_instance_id }).whereRaw('sortOrder>', delete_sortOrder).decrement('sortOrder', 1)
+    await db(table_name).where({ instanceId: actual_instance_id }).whereRaw('sortOrder>?', delete_sortOrder).decrement('sortOrder', 1)
 
     return {
       action: 'afterDeleteRow',

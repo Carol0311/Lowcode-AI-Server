@@ -94,13 +94,14 @@ router.post('/continueChat', async (req: Request<{}, {}, ChatRequest>, res: Resp
           templateInit:
             templateExist === null
               ? {
+                  createTemplate: true,
                   categoryKey,
                   formPageId: `AI_GOODSFORM_CATEGORY_${categoryKey}`,
                   formName: `AI商品档案_${finalSchema.category}_品类`,
                   listPageId: `AI_GOODSLIST_CATEGORY_${categoryKey}`,
                   listName: `AI商品档案列表_${finalSchema.category}_品类`,
                 }
-              : null,
+              : { createTemplate: false, categoryKey, formPageId: `AI_GOODSFORM_CATEGORY_${categoryKey}`, listPageId: `AI_GOODSLIST_CATEGORY_${categoryKey}` },
         },
       })
     }
@@ -169,8 +170,8 @@ router.get('/getChat', async (req: Request<{}, {}, {}, ChatRequest>, res: Respon
         session,
         messages: messages || [],
         params,
-        formId: `AI_GOODSFORM_CATEGORY_${categoryKey}`,
-        listId: `AI_GOODSLIST_CATEGORY_${categoryKey}`,
+        formPageId: `AI_GOODSFORM_CATEGORY_${categoryKey}`,
+        listPageId: `AI_GOODSLIST_CATEGORY_${categoryKey}`,
       },
     })
   } catch (e: any) {
@@ -194,6 +195,7 @@ router.delete('/deleteChat', async (req: Request<{}, {}, {}, ChatRequest>, res) 
   console.log(`删除会话${req.query.sessionId}开始......`)
   try {
     const { userId, sessionId } = req.query
+    //删除会话
     await sessionService.deleteConversation(userId, sessionId)
     res.status(200).json({ success: true, message: '删除成功', type: 'short' })
   } catch (e: any) {

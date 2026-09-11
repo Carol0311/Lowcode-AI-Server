@@ -15,18 +15,6 @@ export interface PromptContext {
 }
 const promptBuilder = new PromptBuilder()
 
-const openai = new OpenAI({
-  apiKey: 'sk-6be572db650b4af09ebe917c2b1836cb', //process.env.DASHSCOPE_API_KEY,
-  baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-})
-
-const context: PromptContext = {
-  userInput: '',
-  collectedParams: {},
-  targetSchema: '',
-  businessRules: [],
-}
-
 class AIService {
   private static apiKey: string
   private static baseURL: string
@@ -45,25 +33,6 @@ class AIService {
       AIService.instance = new AIService()
     }
     return AIService.instance
-  }
-
-  async getSchemaFromDesc(desc: string) {
-    const context: PromptContext = {
-      userInput: '',
-      collectedParams: {},
-      targetSchema: '',
-      businessRules: [],
-    }
-    const prompt = await promptBuilder.build(context)
-
-    const completions = await AIService.openai.chat.completions.create({
-      model: 'qwen3.8-flash',
-      messages: [
-        { role: 'system', content: '' },
-        { role: 'user', content: '' },
-      ],
-    })
-    return JSON.stringify(completions)
   }
   async generateNextQuestion(collectedParams: any, messageHistory: any, currentStep: string) {
     return ''
@@ -172,7 +141,7 @@ class AIService {
     请直接输出商品描述：`
 
     const response = await AIService.openai.chat.completions.create({
-      model: 'qwen3.7-flash',
+      model: 'qwen3.8-flash',
       messages: [
         { role: 'system', content: '你是一个专业的电商文案写手，只输出商品描述文本。' },
         { role: 'user', content: prompt },
@@ -183,21 +152,24 @@ class AIService {
     return response.choices[0].message.content?.trim()
   }
   async getParamsFromInput(sessionId: string, userInput: string, lastQuestion: string, askKeys: string[]) {
-    let collectedParams: Record<string, any> = {}
-    if (askKeys.includes('descDetail')) {
-      //获取当前收集的所有参数
-      collectedParams = await sessionService.getCollectedParams(sessionId)
-      const detl = await this.generateDetlText(collectedParams, '')
-      console.log('商品详情:', detl)
-      return { descDetail: detl || '' }
-    }
+    let collectedParams: Record<string, any> = { method: 'ai' }
+
     const simpleParams = this.extractAskKeys(userInput, askKeys)
     collectedParams = { ...collectedParams, ...simpleParams }
 
     //逻辑处理已经满足了参数处理要求，不再调用ai
     if (!(Object.keys(simpleParams).length < askKeys.length)) {
       console.log('简单逻辑参数处理', simpleParams)
+      collectedParams['method'] = 'rules'
       return collectedParams
+    }
+
+    if (!collectedParams['descDetail'] && askKeys.includes('descDetail')) {
+      //获取当前收集的所有参数
+      const pp = await sessionService.getCollectedParams(sessionId)
+      const detl = await this.generateDetlText(pp, '')
+      console.log('商品详情:', detl)
+      return { descDetail: detl || '' }
     }
 
     const prompt = `你是一个商品信息提取助手。请根据用户输入，提取以下商品信息，只返回 JSON。
