@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { promptConfig } from '../extractors/prompt'
 import { sessionService } from '../services/sessionService'
 
-const { validateStep, stepEndQuestion, paramQuestion, paramName, paramKey } = promptConfig as Record<string, any>
+const { validateStep, stepEndQuestion, paramQuestion, paramName, paramKey, paramOption } = promptConfig as Record<string, any>
 
 //从问题中获取参数字段
 export const extractCurrentField = (question: string) => {
@@ -67,9 +67,11 @@ const formatQuestion = async (collect: any, param: string | null, step: string |
   }
   if (question.value.match('skuList')) {
     question.type = 'select'
-    const result = await sessionService.getSkuOfCategory(collect['category'])
-    question.options = result
-    question.value = question.value.replace('{skuList}', result.join('-'))
+    const result = (await sessionService.getSkuOfCategory(collect['category'])) || {}
+    //question.options = result.params.map((spec: any) => `${spec.label}`)
+    question.options = []
+    const skuLables = result.params.map((spec: any) => `${spec.label}`)
+    question.value = question.value.replace('{skuList}', skuLables.join('-'))
   }
   if (question.value.match('summary')) {
     let filterCollect = filterParams(collect)
@@ -173,5 +175,20 @@ export const getCategoryKey = (category: string) => {
       return 'CLOTHES'
     case '食品':
       return 'FOODS'
+  }
+}
+//获取参数对应的降级选项
+export const getQuestionWithOptions = (askKeys: any[], skuProps: any[]) => {
+  const target = askKeys[0] || ''
+  let skuOptions: any[] = []
+  if (target === 'sku') {
+    skuOptions = skuProps.map((value: any) => {
+      return { label: value.label, value: value.options, key: value.key }
+    })
+  }
+  return {
+    value: `请选择【${paramName[target]}】\n`,
+    options: target === 'sku' ? skuOptions : paramOption[target] || [],
+    key: target,
   }
 }

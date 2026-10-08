@@ -12,33 +12,27 @@ export class ParamExtractor {
     this.aiExtractor = new AIFallbackExtractor()
   }
 
-  async extract(
-    sessionId: string,
-    text: string,
-    lastQuestion: string,
-    askKeys: string[]
-  ): Promise<{
-    category?: string
-    brand?: string
-    sku?: string
-    product_name?: string
-    confidence: number
-    method: 'rule' | 'nlp' | 'ai'
-  }> {
-    // 第一层：规则匹配
-    if (['跳过', '无', 'skip'].includes(text)) {
-      const ruleskip: Record<string, any> = {}
-      askKeys.forEach((v: string) => (ruleskip[v] = null))
-      return {
-        ...ruleskip,
-        confidence: 0.9,
-        method: 'rule',
-      }
+  async extract(sessionId: string, userText: string, askKeys: string[], currentSku: any[]): Promise<Record<string, any>> {
+    // 清理可能包含的markdown代码块标记
+    let userInput = userText.replace(/```json\s*/g, '')
+    userInput = userInput.replace(/```\s*/g, '')
+    userInput = userInput.trim()
+    // 移除所有换行符和制表符
+    userInput = userInput.replace(/[\n\r\t]/g, '')
+    //避免空回答浪费token
+    if (userInput.length === 0) {
+      return {}
     }
-    const ruleResult = this.ruleExtractor.extract(text)
-    if (this.isResultValid(askKeys, ruleResult)) {
+
+    //关键字匹配
+    const ruleResult = this.ruleExtractor.extract(userInput)
+    //规则匹配
+    const matchResult = this.ruleExtractor.extractMore(userInput, askKeys, currentSku)
+    const collectedResult = { ...matchResult, ...ruleResult }
+    const restAskKeys = this.isResultValid(askKeys, collectedResult)
+    if (restAskKeys.length === 0) {
       return {
-        ...ruleResult,
+        ...collectedResult,
         confidence: 0.9,
         method: 'rule',
       }
@@ -57,9 +51,9 @@ export class ParamExtractor {
     // 第三层：AI兜底
     if (this.aiExtractor) {
       try {
-        const aiResult = await this.aiExtractor.extractWithAI(sessionId, text, lastQuestion, askKeys)
+        const aiResult = await this.aiExtractor.extractWithAI(sessionId, userInput, restAskKeys)
         return {
-          ...ruleResult,
+          ...collectedResult,
           confidence: 0.95,
           method: 'ai',
           ...aiResult,
@@ -72,18 +66,18 @@ export class ParamExtractor {
     // 返回默认结果
     return {
       category: '通用商品',
-      product_name: this.extractGenericProductName(text),
+      product_name: this.extractGenericProductName(userInput),
       confidence: 0.3,
       method: 'rule',
     }
   }
 
-  private isResultValid(askKeys: string[], result: any): boolean {
+  private isResultValid(askKeys: string[], result: any): any[] {
     //问题中的参数信息有效提取了
-    let isCompleted = true
+    let isCompleted = []
     for (let i = 0; i < askKeys.length; i++) {
       if (!result.hasOwnProperty(askKeys[i])) {
-        isCompleted = false
+        isCompleted.push(askKeys[i])
         break
       }
     }

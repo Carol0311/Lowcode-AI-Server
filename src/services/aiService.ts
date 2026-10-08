@@ -37,62 +37,6 @@ class AIService {
   async generateNextQuestion(collectedParams: any, messageHistory: any, currentStep: string) {
     return ''
   }
-  extractAskKeys(userInput: string, askKeys: string[]) {
-    let obj = {} as Record<string, any>
-    if (askKeys.includes('sku')) {
-      // 清理可能包含的markdown代码块标记
-      let param = userInput.replace(/```json\s*/g, '')
-      param = param.replace(/```\s*/g, '')
-      param = param.trim()
-
-      // 移除所有换行符和制表符
-      param = param.replace(/[\n\r\t]/g, '')
-
-      obj['sku'] = param.trim().split(' ')
-      console.log('sku参数是', obj['sku'])
-    }
-    if (userInput.match(/跳过/)) {
-      if (askKeys.includes('b2bOrderUnit')) {
-        obj = {
-          b2bOrderUnit: null,
-          b2bOrderCtrl: false,
-          minOrderQuantity: null,
-          incrementUnit: null,
-          maxOrderQuantity: null,
-        }
-      } else {
-        askKeys.forEach((key) => {
-          obj[key] = 'skip'
-        })
-      }
-    }
-    if (userInput === '是') {
-      if (askKeys.includes('b2bOrderCtrl')) {
-        obj['b2bOrderCtrl'] = true
-      } else if (askKeys.includes('isLaunch')) {
-        obj['isLaunch'] = true
-      } else {
-        askKeys.forEach((key) => {
-          obj[key] = true
-        })
-      }
-    } else if (userInput === '否') {
-      if (askKeys.includes('b2bOrderCtrl')) {
-        obj['b2bOrderCtrl'] = false
-      } else if (askKeys.includes('isLaunch')) {
-        obj['isLaunch'] = false
-        obj['rebate'] = null
-      } else {
-        askKeys.forEach((key) => {
-          obj[key] = false
-        })
-      }
-    }
-
-    if (userInput === '需要') {
-    }
-    return obj
-  }
   async generateTitle(summary: string) {
     const prompt = `
     请根据以下内容摘要，生成一个商品档案标题。
@@ -151,20 +95,8 @@ class AIService {
     })
     return response.choices[0].message.content?.trim()
   }
-  async getParamsFromInput(sessionId: string, userInput: string, lastQuestion: string, askKeys: string[]) {
-    let collectedParams: Record<string, any> = { method: 'ai' }
-
-    const simpleParams = this.extractAskKeys(userInput, askKeys)
-    collectedParams = { ...collectedParams, ...simpleParams }
-
-    //逻辑处理已经满足了参数处理要求，不再调用ai
-    if (!(Object.keys(simpleParams).length < askKeys.length)) {
-      console.log('简单逻辑参数处理', simpleParams)
-      collectedParams['method'] = 'rules'
-      return collectedParams
-    }
-
-    if (!collectedParams['descDetail'] && askKeys.includes('descDetail')) {
+  async getParamsFromInput(sessionId: string, userInput: string, askKeys: string[]) {
+    if (askKeys.includes('descDetail')) {
       //获取当前收集的所有参数
       const pp = await sessionService.getCollectedParams(sessionId)
       const detl = await this.generateDetlText(pp, '')
@@ -213,8 +145,7 @@ class AIService {
     params = params.replace(/[\n\r\t]/g, '')
 
     try {
-      const parsedParams = JSON.parse(params)
-      const resultParams = { ...collectedParams, ...parsedParams }
+      const resultParams = JSON.parse(params)
       console.log('处理后的参数', resultParams)
       return resultParams
     } catch (e: any) {

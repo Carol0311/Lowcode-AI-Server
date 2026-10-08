@@ -151,6 +151,7 @@ export const promptConfig = {
     descDetail: ['descDetail'],
     additionInfo: ['additionInfo'],
   },
+
   stepEndQuestion: {
     init: '您好！我将帮助您创建{category}的商品档案。为了生成最适合的表单，我需要了解一些关键信息。\n\n首先，请告诉我这款商品的【商品名称】是什么？',
     basic: '好的，已录入商品基本信息。\n接下来录入扩展信息。{category}品类的商品，通常需要以下【规格信息】：\n{skuList}\n请依次提供规格的具体值',
@@ -215,5 +216,18 @@ export const promptConfig = {
     isLaunch: '这款商品在B2C【是否上架】，回复"是",商品上架，可在页面预览并正常销售;回复"否"则商品下架或未上架，页面不可预览销售。',
     rebate: '请提供【返利】（如0-100百分比）信息：',
     additionInfo: '我已经收集了以下信息：\n{summary}\n\n还有需要【补充信息】的吗？如果不需要,回复"否"，我将生成最终的表单配置。',
+  },
+  paramOption: {
+    category: ['手机', '服饰', '美食'],
+    isLaunch: ['是', '否'],
+    rebate: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    b2bOrderUnit: ['件', '箱', '袋', '包', '杯'],
+    b2bOrderCtrl: ['是', '否'],
+    minOrderQuantity: [],
+    incrementUnit: [],
+    maxOrderQuantity: [],
+    b2cOrderUnit: ['仅B2B', '是'],
+    descDetail: ['需要', '跳过'],
+    pictureDetail: ['需要', '跳过'],
   },
 }

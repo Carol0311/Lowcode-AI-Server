@@ -4,7 +4,7 @@ const { paramName } = promptConfig
 
 export class AIFallbackExtractor {
   //跳过关键词
-  private skipKeywords = ['跳过', '不需要', '暂不', '不用', '不填', '否', 'no', 'n', '跳过此项']
+  /**private skipKeywords = ['跳过', '不需要', '暂不', '不用', '不填', '否', 'no', 'n', '跳过此项']
 
   //提取目标参数
   extractTargetParams(question: string): string[] {
@@ -19,14 +19,13 @@ export class AIFallbackExtractor {
     }
 
     return matches
-  }
+  }*/
 
   constructor(apiKey?: string) {}
 
   async extractWithAI(
     sessionId: string,
     text: string,
-    lastQuestion: string,
     askKeys: string[]
   ): Promise<{
     category?: string
@@ -35,7 +34,7 @@ export class AIFallbackExtractor {
     specs?: string[]
   }> {
     try {
-      const result = await aiService.getParamsFromInput(sessionId, text, lastQuestion, askKeys)
+      const result = await aiService.getParamsFromInput(sessionId, text, askKeys)
       return result
     } catch (error) {
       console.error('AI提取失败:', error)

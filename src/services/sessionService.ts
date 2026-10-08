@@ -173,7 +173,8 @@ class SessionService {
       const result = await db('product_categories').where({ id: category }).first()
       if (result) {
         spec = JSON.parse(result.params) || []
-        return spec.map((spec: any) => `${spec.label}`)
+        //return spec.map((spec: any) => `${spec.label}`)
+        return { params: spec, model: JSON.parse(result.model) || {} }
       }
       return spec
     } catch (e: any) {
