@@ -1,42 +1,64 @@
 export const SYSTEM_TABLE_INSTANCE_LIST = ['System_Default_Table_Instance', 'System_Default_Edit_Table_Instance', 'System_Default_Group_Table_Instance']
 export const SYSTEM_DEFAULT_TABLE_ROWS = 'system_table_rows'
 export const SYSTEM_DEFAULT_TABLE_INSTANCE = 'System_Default_Table_Instance'
+const defaultProps = {
+  align: 'left',
+  sortOrder: 0,
+  hidden: false,
+  require: false,
+  disable: false,
+  readonl: false,
+  editable: true,
+  resizable: true,
+  sortable: true,
+  filterable: true,
+  minWidth: 60,
+  inTable: true,
+  isLowCode: false,
+}
+
 export const system_default_columns = [
   {
     instanceId: SYSTEM_DEFAULT_TABLE_INSTANCE,
     name: '公司',
     type: 'Text',
     key: 'company',
+    props: JSON.stringify(defaultProps),
   },
   {
     instanceId: SYSTEM_DEFAULT_TABLE_INSTANCE,
     key: 'amount',
     name: '单据金额',
     type: 'Number',
+    props: JSON.stringify(defaultProps),
   },
   {
     instanceId: SYSTEM_DEFAULT_TABLE_INSTANCE,
     key: 'currency',
     name: '币种',
     type: 'Text',
+    props: JSON.stringify(defaultProps),
   },
   {
     instanceId: SYSTEM_DEFAULT_TABLE_INSTANCE,
     key: 'progress',
     name: '完成进度',
     type: 'Text',
+    props: JSON.stringify(defaultProps),
   },
   {
     instanceId: SYSTEM_DEFAULT_TABLE_INSTANCE,
     key: 'date',
     name: '到账日期',
     type: 'Date',
+    props: JSON.stringify(defaultProps),
   },
   {
     instanceId: SYSTEM_DEFAULT_TABLE_INSTANCE,
     key: 'operation',
     name: '操作',
     type: 'Operation',
+    props: JSON.stringify({ ...defaultProps, options: [{ name: '查看详情', service: 'view' }] }),
   },
 ]
 const generateLargeData = async (largeCount: number) => {
@@ -56,7 +78,7 @@ const generateLargeData = async (largeCount: number) => {
           currency: 'CNY',
           progress: '100%',
           date: '2025-3-25',
-          operation: ['edit', 'delete'],
+          operation: ['view'],
         }),
       }))
       chunks.push(...chunk)

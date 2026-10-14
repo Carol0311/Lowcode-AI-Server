@@ -49,13 +49,25 @@ export class RuleBasedExtractor {
     } else if (userInput === '否' || userInput === 'no' || userInput === '不' || userInput === 'n') {
       if (askKeys.includes('b2bOrderCtrl')) {
         obj['b2bOrderCtrl'] = false
+        obj['minOrderQuantity'] = null
+        obj['incrementUnit'] = null
+        obj['maxOrderQuantity'] = null
       } else if (askKeys.includes('isLaunch')) {
         obj['isLaunch'] = false
         obj['rebate'] = null
+      } else if (askKeys.includes('additionInfo')) {
+        obj['additionInfo'] = '无'
       } else {
         askKeys.forEach((key) => {
           obj[key] = false
         })
+      }
+    } else if (!Number.isNaN(Number(userInput)) && askKeys.length === 0 && ['rebate', 'minOrderQuantity', 'incrementUnit', 'maxOrderQuantity'].includes(askKeys[0])) {
+      //是合法数字
+      if (askKeys[0] === 'rebate') {
+        obj['rebate'] = `${userInput}%`
+      } else {
+        obj[askKeys[0]] = Number(userInput)
       }
     }
 

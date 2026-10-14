@@ -14,7 +14,7 @@ exports.seed = async (knex: Knex) => {
     category: { type: 'SSelect', index: 1, label: '商品分类', layout_group: 'basic' },
     brand: { type: 'Text', index: 2, label: '品牌', layout_group: 'basic' },
     price: { type: 'Price', index: 3, label: '销售价', layout_group: 'basic' },
-    sku: { type: 'Text', index: 4, label: '规格信息', layout_group: 'basic' },
+    sku: { type: 'Sku', index: 4, label: '规格信息', layout_group: 'basic' },
     b2bOrderUnit: { type: 'SSelect', index: 5, label: 'B2B订货单位', layout_group: 'b2b' },
     b2bOrderCtrl: { type: 'SCheckbox', index: 6, label: 'B2B订货控制', layout_group: 'b2b' },
     minOrderQuantity: { type: 'Number', index: 7, label: '最小订货量', layout_group: 'b2b' },

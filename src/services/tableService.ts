@@ -101,6 +101,39 @@ class TableService {
     return final_columns
   }
 
+  //获取表格行数据
+  async getRow(instanceId: string, rowCode: any) {
+    const table_name = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_ROWS : 'table_rows'
+    const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
+
+    const targetRow = await db(table_name).where({ instanceId: actual_instance_id, rowCode }).first()
+    if (targetRow) {
+      return deserialize(targetRow)
+    }
+    return {}
+  }
+  //更新表格行数据
+  async updateRow(instanceId: string, rowCode: any, changeData: Record<string, any>) {
+    const table_name = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_ROWS : 'table_rows'
+    const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
+
+    const targetRow = await db(table_name).where({ instanceId: actual_instance_id, rowCode }).first()
+    const oldData = deserialize(targetRow)
+    const newData = { ...oldData.data, ...changeData }
+    console.log('newData', newData)
+    const updateData = serialize({ data: newData })
+    console.log('serialize', updateData)
+    await db(table_name).where({ instanceId: actual_instance_id, rowCode }).update({
+      data: updateData.data,
+    })
+    const result = await db(table_name).where({ instanceId: actual_instance_id, rowCode }).first()
+    if (result) {
+      const final = deserialize(result)
+      return final
+    }
+    return {}
+  }
+
   //更新插入表格行数据
   async upsertRow(rowData: Record<string, any>, position?: number) {
     const { rowId, instanceId, rowCode, rowName, data } = rowData

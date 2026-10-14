@@ -3,6 +3,7 @@
  */
 import express, { Request, Response } from 'express'
 import { pageService } from '../services/pageService'
+import { tableService } from '../services/tableService'
 import { PageListRequest, PageListResponse, PageSchema, FieldsSchema, PageResponse, PageDataResponse, PageDetlRequest, PageDeleteRequest, PageDeleteResponse } from '../types/page'
 
 const router = express.Router()
@@ -95,7 +96,12 @@ router.post('/loadPageData', async (req: Request<{}, {}, FieldsSchema>, res: Res
   console.log(`获取页面${req.body.id || req.body.pageId}数据开始......`)
   try {
     const pageData = req.body
-    const data = await pageService.loadPageData(pageData)
+    let data: any = null
+    if (pageData.datas?.instanceId && pageData.datas?.rowCode) {
+      data = await tableService.getRow(pageData.datas.instanceId, pageData.datas.rowCode)
+    } else {
+      data = await pageService.loadPageData(pageData)
+    }
     if (data) {
       res.status(200).json({ success: true, data })
     } else {
@@ -133,7 +139,13 @@ router.post('/buttonClick', async (req: Request<{}, {}, PageSchema>, res: Respon
       //保存组件数据
       const result = await pageService.createOrUpdate(pageData, 'save')
       //保存字段数据
-      const result2 = await pageService.updateValue({ id: pageData.id, pageId: pageData.pageId, datas: pageData.changeData })
+      if (pageData.changeData?.instanceId) {
+        //如果页面是与表格某一行关联的数据
+        const { instanceId, rowCode, ...updateData } = pageData.changeData
+        await tableService.updateRow(instanceId, rowCode, updateData)
+      } else {
+        await pageService.updateValue({ id: pageData.id, pageId: pageData.pageId, datas: pageData.changeData })
+      }
       res.status(200).json({ success: true, data: result, message: ' 保存成功', type: 'short' })
     }
   } catch (e: any) {

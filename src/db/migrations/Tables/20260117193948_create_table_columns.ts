@@ -1,5 +1,5 @@
 import type { Knex } from 'knex'
-const columnTypes = ['Text', 'Date', 'DateRange', 'SSelect', 'Switch', 'Number', 'Price', 'Qty', 'SCheckbox', 'TextArea', 'Address', 'Image', 'Button', 'MenuButton', 'ButtonGroup', 'Operation']
+const columnTypes = ['Text', 'Date', 'DateRange', 'SSelect', 'Sku', 'Switch', 'Number', 'Price', 'Qty', 'SCheckbox', 'TextArea', 'Address', 'Image', 'Button', 'MenuButton', 'ButtonGroup', 'Operation']
 const defaultProps = {
   align: 'left',
   sortOrder: 0,

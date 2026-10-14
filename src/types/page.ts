@@ -22,6 +22,9 @@ export interface PageSchema {
 export interface FieldsSchema {
   id: string
   pageId: string
+  instanceId?: string //页面数据来源于表格行时
+  rowCode?: string //页面数据来源于表格行时
+  data?: Record<string, any> //页面数据来源于表格行时
   datas?: Record<string, any> //存放页面字段数据
   created_at?: Date
   updated_at?: Date

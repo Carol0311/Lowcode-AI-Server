@@ -117,7 +117,9 @@ class AIService {
           }
             
           【重要说明】
-           - 如果需要提取的字段是price,答案要携带货币符号
+           - 如果需要提取的字段是price,答案要携带货币符号,默认是¥
+           - 如果需要提取的字段是rebate,答案要携带%
+           - 如果需要提取的字段是minOrderQuantity或incrementUnit或maxOrderQuantity,答案为数字类型
            - 如果需要提取的字段是additionInfo,答案为${userInput.trim()}
            - 只提取需要提取的字段对应的答案
            - 只返回JSON，不要其他文字
