@@ -105,7 +105,7 @@ router.post('/continueChat', async (req: Request<{}, {}, ChatRequest>, res: Resp
     // 3. 从用户输入中提取参数
     let collectedParams = await sessionService.getCollectedParams(sessionId)
     //品类改变
-    if (collectedParams['category'] && collectedParams['category']! == currentCategory) {
+    if (collectedParams['category'] && collectedParams['category'] !== currentCategory) {
       currentCategory = collectedParams['category']
       isCategoryChanged = true
     } else {
