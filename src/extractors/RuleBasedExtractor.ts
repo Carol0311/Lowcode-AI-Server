@@ -16,10 +16,22 @@ export class RuleBasedExtractor {
   }
   extractMore(userInput: string, askKeys: string[], skuArr: any[]) {
     let obj = {} as Record<string, any>
+    //sku参数规则提取
     if (askKeys.includes('sku') && userInput.length > 0) {
-      const inputArr = userInput.trim().split('-')
-      obj['sku'] = this.extractSku(inputArr, skuArr)
+      if (['跳过', '不需要'].includes(userInput)) {
+        obj['sku'] = 'skip'
+        return obj
+      }
+      if (['不知道', '无', '否', '不', 'ok', 'true', 'false', 'yes', 'no', 'n', 'y'].includes(userInput)) {
+        return obj
+      }
+      const inputArr = userInput.split(/-| |,/)
+      const skuResult = this.extractSku(inputArr, skuArr)
+      if (skuResult.skuSummary.length > 0) {
+        obj['sku'] = skuResult
+      }
       console.log('sku参数是', obj['sku'])
+      return obj
     }
     if (userInput.match(/跳过/)) {
       if (askKeys.includes('b2bOrderUnit')) {
@@ -82,25 +94,19 @@ export class RuleBasedExtractor {
     const inputSet = new Set(inputArr)
     const result = {} as Record<string, any>
     result['skuSummary'] = ''
-    let restKey = ''
-    let restLable = ''
     for (const { key, label, regx } of categoryArr) {
       for (const item of inputSet) {
-        if (regx) {
-          if (item.match(regx)) {
-            result[key] = item
-            result['skuSummary'] += `${label}:${item}|`
-            inputSet.delete(item)
-          }
-        } else {
-          restKey = key
-          restLable = label
+        if (['跳过', '不知道', '不需要', '无', '否', '不', 'ok', 'true', 'false', 'yes', 'no', 'n', 'y'].includes(item)) {
+          inputSet.delete(item)
+          continue
+        }
+        if (regx && regx.test(item)) {
+          result[key] = item
+          result['skuSummary'] += `${label}:${item}|`
+          inputSet.delete(item)
         }
       }
     }
-    const rest = [...inputSet].join('')
-    result[restKey] = rest
-    result['skuSummary'] += `${restLable}:${rest}`
     return result
   }
 }

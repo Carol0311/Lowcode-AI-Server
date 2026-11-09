@@ -8,6 +8,8 @@ exports.seed = async (knex: Knex) => {
   //if (allowInsert) {
   //测试期所有环境都允许插入种子数据
 
+  await knex('product_categories').del()
+
   //通用标准字段模版
   const standardModel: Record<string, any> = {
     product_name: { type: 'Text', index: 0, label: '商品名称', layout_group: 'basic' },
@@ -36,23 +38,24 @@ exports.seed = async (knex: Knex) => {
         {
           key: 'model',
           label: '型号',
+          regx: { source: '^[a-z]+\\s*\\d+(?:\\s*(?:pro|max|x))?$', flag: 'gi' },
         },
         {
           key: 'color',
           label: '颜色',
-          regx: new RegExp('色|color|colour', 'g'),
+          regx: { source: '色|color|colour', flag: 'g' },
           options: ['白色', '黑色', '银色', '金色', '红色', '黄色', '蓝色', '其他'],
         },
         {
           key: 'memory',
           label: '内存',
-          regx: new RegExp('^16gb?|^12GB?|^8GB?', 'gi'),
+          regx: { source: '^16gb?|^12GB?|^8GB?', flag: 'gi' },
           options: ['8GB', '12GB', '16GB'],
         },
         {
           key: 'storage',
           label: '存储',
-          regx: new RegExp('^128gb?|^256GB?|^512GB?|^1TB', 'gi'),
+          regx: { source: '^128gb?|^256GB?|^512GB?|^1TB', flag: 'gi' },
           options: ['128GB', '256GBG', '512GB'],
         },
       ]),
@@ -69,18 +72,19 @@ exports.seed = async (knex: Knex) => {
         {
           key: 'size',
           label: '尺寸',
-          regx: new RegExp('XS|S|M|L|XL|XXL', 'gi'),
+          regx: { source: 'XS|S|M|L|XL|XXL', flag: 'gi' },
           options: ['S', 'M', 'L'],
         },
         {
           key: 'color',
           label: '颜色',
-          regx: new RegExp('色|color|colour', 'g'),
+          regx: { source: '色|color|colour', flag: 'g' },
           options: ['白色', '黑色', '红色', '黄色', '蓝色', '其他'],
         },
         {
           key: 'material',
           label: '材质',
+          regx: { source: '棉|丝|纤|纺|其他', flag: 'g' },
           options: ['全棉', '聚酯纤维', '真丝', '莱塞尔', '混纺', '其他'],
         },
       ]),
@@ -97,18 +101,19 @@ exports.seed = async (knex: Knex) => {
         {
           key: 'weight',
           label: '净含量',
-          regx: new RegExp('g|kg', 'gi'),
+          regx: { source: 'g|kg', flag: 'gi' },
           options: ['100g', '200g', '300g', '500g', '大于500g'],
         },
         {
           key: 'type',
           label: '产品类型',
+          regx: { source: '膨化食品|奶制品|肉类产品|坚果|其他', flag: 'g' },
           options: ['膨化食品', '奶制品', '肉类产品', '坚果', '其他'],
         },
         {
           key: 'entity',
           label: '包装规格',
-          regx: new RegExp('包|箱|袋|杯', 'g'),
+          regx: { source: '包|箱|袋|杯', flag: 'g' },
           options: ['1包', '1箱', '1杯', '1袋'],
         },
       ]),

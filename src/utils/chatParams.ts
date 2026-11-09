@@ -178,8 +178,7 @@ export const getCategoryKey = (category: string) => {
   }
 }
 //获取参数对应的降级选项
-export const getQuestionWithOptions = (askKeys: any[], skuProps: any[]) => {
-  const target = askKeys[0] || ''
+export const getQuestionWithOptions = (target: string, skuProps: any[]) => {
   let skuOptions: any[] = []
   if (target === 'sku') {
     skuOptions = skuProps.map((value: any) => {

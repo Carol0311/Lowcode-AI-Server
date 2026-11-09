@@ -114,6 +114,11 @@ router.post('/continueChat', async (req: Request<{}, {}, ChatRequest>, res: Resp
     //品类变化，重新取sku类型
     if (collectedParams['category'] && (Object.keys(currentSku).length === 0 || isCategoryChanged)) {
       currentSku = await sessionService.getSkuOfCategory(collectedParams['category'])
+      const skuParams = currentSku.params.map((param: any) => {
+        const r = new RegExp(param.regx.source, param.regx.flag)
+        return { ...param, regx: r }
+      })
+      currentSku.params = skuParams
     }
 
     const askKeys = extractCurrentField(lastQuestion.content)
@@ -141,8 +146,9 @@ router.post('/continueChat', async (req: Request<{}, {}, ChatRequest>, res: Resp
     const lastThree = assisHistory?.slice(-3, assisHistory.length) || []
     let nextQuestion
     let questionWithPtions
-    if (lastThree.length === 3 && lastThree[0].content === lastThree[1].content && lastThree[1].content === lastThree[2].content) {
-      questionWithPtions = getQuestionWithOptions(askKeys, currentSku.params)
+    const target = askKeys[0] || ''
+    if (!collectedParams[target] && lastThree.length === 3 && lastThree[0].content === lastThree[1].content && lastThree[1].content === lastThree[2].content) {
+      questionWithPtions = getQuestionWithOptions(target, currentSku.params)
       nextQuestion = questionWithPtions.value
     } else {
       if (isBussiness.value) {
