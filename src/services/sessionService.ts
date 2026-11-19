@@ -1,4 +1,9 @@
+import { deserialize } from '../utils/index'
 import db from '../db/knex'
+
+const defaultParamsOption = {
+  param_value: JSON.stringify({}),
+}
 
 export interface SessionData {
   title: string
@@ -84,6 +89,7 @@ class SessionService {
       return message.reverse()
     } catch (e: any) {
       console.log('查询消息历史出错', e.message)
+      return []
     }
   }
   //获取目标对话记录
@@ -93,6 +99,7 @@ class SessionService {
       return message
     } catch (e: any) {
       console.log('查询消息历史出错', e.message)
+      return []
     }
   }
 
@@ -100,12 +107,10 @@ class SessionService {
   async saveCollectedParam(sessionId: string, key: string, value: any, type: string = 'string') {
     try {
       const paramValue = typeof value === 'object' ? JSON.stringify(value) : String(value)
-      await db('collected_params').insert({
-        session_id: sessionId,
-        param_key: key,
-        param_value: paramValue,
-        param_type: type,
-      })
+      await db('collected_params')
+        .insert({ ...defaultParamsOption, session_id: sessionId, param_key: key, param_value: paramValue, param_type: type })
+        .onConflict(['session_id', 'param_key'])
+        .merge(['param_value', 'param_type'])
     } catch (e: any) {
       console.log('保存参数出错', e.message)
     }
@@ -118,7 +123,7 @@ class SessionService {
       return params.reduce((acc, row) => {
         let value: any = row.param_value
         if (row.param_type === 'json' || row.param_key === 'specs') {
-          value = JSON.parse(row.param_value)
+          value = typeof row.param_value === 'string' ? JSON.parse(row.param_value) : row.param_value
         } else if (row.param_type === 'number') {
           value = Number(row.param_value)
         } else if (row.param_type === 'boolean') {
@@ -129,6 +134,7 @@ class SessionService {
       }, {})
     } catch (e: any) {
       console.log('获取已收集参数出错', e.message)
+      return {}
     }
   }
 
@@ -152,8 +158,7 @@ class SessionService {
   // 清理过期会话
   async cleanupExpiredSessions(days: number = 30) {
     try {
-      const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
-      await db('conversation_sessions').where({ is_completed: 1 }).whereRaw('last_active < ?', [cutoff]).del()
+      await db('conversation_sessions').where({ is_completed: 1 }).whereRaw('last_active < DATE_SUB(NOW(), INTERVAL ? DAY)', [days]).del()
     } catch (e: any) {
       console.log('清理过期会话出错', e.message)
     }
@@ -169,14 +174,12 @@ class SessionService {
   //获取商品分类对应的规格列表
   async getSkuOfCategory(category: string) {
     try {
-      let spec = <any>[]
       const result = await db('product_categories').where({ id: category }).first()
       if (result) {
-        spec = JSON.parse(result.params) || []
-        //return spec.map((spec: any) => `${spec.label}`)
-        return { params: spec, model: JSON.parse(result.model) || {} }
+        const finalResult = deserialize(result)
+        return { params: finalResult.params || [], model: finalResult.model || {} }
       }
-      return spec
+      return { params: [], model: {} }
     } catch (e: any) {
       console.log('获取规格列表参数出错', e.message)
     }

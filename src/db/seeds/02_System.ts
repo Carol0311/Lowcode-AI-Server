@@ -1,8 +1,7 @@
 import type { Knex } from 'knex'
 import { generateUniqueId } from '../../utils/index'
 import { createInsertTask } from '../../utils/tableTaskEmitter'
-import { system_default_columns, SYSTEM_DEFAULT_TABLE_INSTANCE, SYSTEM_DEFAULT_TABLE_ROWS } from '../defaultData'
-
+import { system_default_columns, SYSTEM_DEFAULT_TABLE_INSTANCE, SYSTEM_DEFAULT_TABLE_ROWS, defaultInstanceOption } from '../defaultData'
 exports.seed = async (knex: Knex) => {
   //const env = process.env.NODE_ENV || 'development'
 
@@ -28,7 +27,7 @@ exports.seed = async (knex: Knex) => {
   await knex('pages_data').insert({
     id: id_goods,
     pageId: 'goods',
-    datas: '{}',
+    datas: JSON.stringify({}),
     created_at: knex.fn.now(),
   })
 
@@ -77,12 +76,13 @@ exports.seed = async (knex: Knex) => {
   await knex('pages_data').insert({
     id: id_goodsList,
     pageId: 'goodsList',
-    datas: '{}',
+    datas: JSON.stringify({}),
     created_at: knex.fn.now(),
   })
 
   //插入系统预置实例
   await knex('table_instance').insert({
+    ...defaultInstanceOption,
     tableId,
     pageId: 'goodsList',
     name: '商品档案列表',

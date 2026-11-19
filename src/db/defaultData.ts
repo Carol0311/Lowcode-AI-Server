@@ -88,3 +88,11 @@ const generateLargeData = async (largeCount: number) => {
   return chunks
 }
 export const system_default_large_data = generateLargeData(100000)
+export const defaultInstanceOption = {
+  virtualScroll: JSON.stringify({ enabled: true, rowHeight: 40, bufferSize: 20, overscan: 5, useWebWorker: true }),
+  pagination: JSON.stringify({ enabled: false, pageSize: 100, currentPage: 1 }),
+  filter: JSON.stringify({}),
+  search: JSON.stringify({}),
+  groupBy: JSON.stringify({}),
+  sort: JSON.stringify({ field: '', order: 'asc' }),
+}

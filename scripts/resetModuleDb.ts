@@ -1,17 +1,25 @@
-import { unlink } from 'fs/promises'
-import { join } from 'path'
 import knex from 'knex'
 import { moduleMapping } from './resetMigrate'
 
 //重置所有模块迁移
 async function resetAllModule(force?: boolean) {
-  //删除数据库文件，断开数据库连接
-  const dbPath = join(__dirname, '../data/lowcode.db')
+  //MySQL删库重建
+  const db = knex({
+    client: 'mysql2',
+    connection: {
+      host: '127.0.0.1',
+      port: 3306,
+      user: 'root',
+      password: 'lowcode@20261115',
+    },
+  })
+
   try {
-    await unlink(dbPath)
-    console.log('已删除数据库文件')
-  } catch (e) {
-    console.log('数据库文件不存在，跳过删除', e)
+    await db.raw('DROP DATABASE IF EXISTS lowcodeAI')
+    await db.raw('CREATE DATABASE lowcodeAI CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')
+    console.log('已重建数据库 lowcodeAI')
+  } finally {
+    await db.destroy()
   }
 
   //按照迁移文件的顺序排序迁移操作，避免依赖异常
@@ -56,7 +64,10 @@ async function resetModule(moduleName: string, force?: boolean) {
       while (hasRollback) {
         try {
           //batch是当前模块下的迁移批次，mlist是该批次关联的迁移列表
-          const [batch, mlist] = await db.migrate.rollback()
+          const [batch, mlist] = await db.migrate.rollback({
+            directory: config.migrations.directory,
+            tableName: config.migrations.tableName,
+          })
           if (batch && mlist && mlist.length > 0) {
             console.log(`${moduleName} 模块当前回滚的迁移列表是${JSON.stringify(mlist)}`)
           } else {
@@ -70,7 +81,10 @@ async function resetModule(moduleName: string, force?: boolean) {
 
       //重新运行迁移
       console.log(`重新运行${moduleName}模块迁移...`)
-      await db.migrate.latest()
+      await db.migrate.latest({
+        directory: config.migrations.directory,
+        tableName: config.migrations.tableName,
+      })
       console.log(`${moduleName}模块迁移完成`)
     }
   } catch (error: any) {

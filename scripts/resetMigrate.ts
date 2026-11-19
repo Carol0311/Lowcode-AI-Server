@@ -2,15 +2,17 @@
 import { join } from 'path'
 
 const baseConfig = {
-  client: 'sqlite3',
+  client: 'mysql2',
   connection: {
-    filename: join(__dirname, '../data/lowcode.db'),
+    host: '127.0.0.1',
+    port: 3306,
+    user: 'root',
+    password: 'lowcode@20261115',
+    database: 'lowcodeAI',
   },
-  useNullAsDefault: true,
   pool: {
-    afterCreate: (conn: any, done: any) => {
-      conn.run('PRAGMA foreign_keys = ON', done)
-    },
+    min: 2,
+    max: 10,
   },
 }
 

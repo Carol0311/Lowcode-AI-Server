@@ -1,7 +1,29 @@
 import db from '../db/knex'
-import { system_default_columns, SYSTEM_DEFAULT_TABLE_INSTANCE, SYSTEM_TABLE_INSTANCE_LIST, SYSTEM_DEFAULT_TABLE_ROWS } from '../db/defaultData'
+import { system_default_columns, SYSTEM_DEFAULT_TABLE_INSTANCE, SYSTEM_TABLE_INSTANCE_LIST, SYSTEM_DEFAULT_TABLE_ROWS, defaultInstanceOption } from '../db/defaultData'
 import { createInsertTask } from '../utils/tableTaskEmitter'
 import { serialize, deserialize, generateUniqueId } from '../utils/index'
+const columnTypes = ['Text', 'Date', 'DateRange', 'SSelect', 'Sku', 'Switch', 'Number', 'Price', 'Qty', 'SCheckbox', 'TextArea', 'Address', 'Image', 'Button', 'MenuButton', 'ButtonGroup', 'Operation']
+const defaultProps = {
+  align: 'left',
+  sortOrder: 0,
+  hidden: false,
+  require: false,
+  disable: false,
+  readonl: false,
+  editable: true,
+  resizable: true,
+  sortable: true,
+  filterable: true,
+  minWidth: 60,
+  inTable: true,
+  isLowCode: false,
+}
+const defaultColumnsOption = {
+  props: JSON.stringify(defaultProps),
+}
+const defaultRowsOption = {
+  data: JSON.stringify({}),
+}
 class TableService {
   private static instance: TableService
   static getInstance() {
@@ -16,6 +38,7 @@ class TableService {
     const additional = ['description', 'virtualScroll', 'pagination', 'filter', 'search', 'isGroup', 'groupBy', 'sort', 'isActive', 'isSystem', 'source', 'session_id']
 
     let insertData = {
+      ...defaultInstanceOption,
       tableId,
       pageId,
       name,
@@ -52,22 +75,6 @@ class TableService {
     return { instanceId: actual_instance_id, tableId, pageId }
   }
   async setDefaultTableData(instanceId: string) {
-    /**const is_Columns_Exist = await db('table_columns').where({ instanceId }).count('* as count').first()
-    if (is_Columns_Exist && Number(is_Columns_Exist.count as string) === 0) {
-      //table_columns存在并且默认数据为空，则插入系统预置数据
-      const columns = system_default_columns.map((column) => {
-        column.instanceId = instanceId
-        return column
-      })
-      await db('table_columns').insert(columns)
-    }
-
-    const is_Rows_Exist = await db(SYSTEM_DEFAULT_TABLE_ROWS).where({ instanceId: SYSTEM_DEFAULT_TABLE_INSTANCE }).count('* as count').first()
-    if (is_Rows_Exist && Number(is_Rows_Exist.count as string) === 0) {
-      //system_table_rows表格存在并且默认数据为空，则插入系统预置数据
-      createInsertTask()
-    }*/
-
     const result = await db('table_columns').where({ instanceId }).select('*').orderBy('sortOrder', 'asc')
     if (!result) return []
     const final_columns = result.map((column) => deserialize(column))
@@ -89,7 +96,7 @@ class TableService {
       if (item.props && typeof item.props === 'object') {
         item.props = JSON.stringify(item.props)
       }
-      return { ...result, ...item, sortOrder: index }
+      return { ...defaultColumnsOption, ...result, ...item, sortOrder: index }
     })
 
     await db('table_columns').insert(finalColumns).onConflict(['instanceId', 'key']).merge(['name', 'type', 'props', 'sortOrder'])
@@ -118,6 +125,7 @@ class TableService {
     const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
 
     const targetRow = await db(table_name).where({ instanceId: actual_instance_id, rowCode }).first()
+    if (!targetRow) return {}
     const oldData = deserialize(targetRow)
     const newData = { ...oldData.data, ...changeData }
     console.log('newData', newData)
@@ -136,7 +144,7 @@ class TableService {
 
   //更新插入表格行数据
   async upsertRow(rowData: Record<string, any>, position?: number) {
-    const { rowId, instanceId, rowCode, rowName, data } = rowData
+    const { rowId, instanceId, rowCode, rowName, data } = serialize(rowData)
     if (!instanceId) {
       throw new Error('instanceId is required')
     }
@@ -160,9 +168,10 @@ class TableService {
     }
 
     let insertData = {
+      ...defaultRowsOption,
       instanceId: actual_instance_id,
       rowCode: `${rowCode}_${sortOrder}`,
-      rowName: `${rowName}_${sortOrder}` || `${rowCode}_${sortOrder}`,
+      rowName: rowName ? `${rowName}_${sortOrder}` : `${rowCode}_${sortOrder}`,
       data,
       sortOrder,
     } as Record<string, any>
@@ -210,7 +219,7 @@ class TableService {
     const table_name = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_ROWS : 'table_rows'
     const actual_instance_id = SYSTEM_TABLE_INSTANCE_LIST.includes(instanceId) ? SYSTEM_DEFAULT_TABLE_INSTANCE : instanceId
 
-    const deleteRow = await db(table_name).where({ instanceId, rowCode }).first()
+    const deleteRow = await db(table_name).where({ instanceId: actual_instance_id, rowCode }).first()
     //}
 
     if (!deleteRow) {
@@ -234,6 +243,8 @@ class TableService {
       db('table_instance').where({ instanceId, pageId, tableId }).select('*').first(),
       db('table_columns').where({ instanceId }).select('*').orderBy('sortOrder', 'asc'),
     ])
+
+    if (!config) return { tableConfig: { totalCounts: 0 }, columns: [] }
 
     const final_config = deserialize(config)
     const final_columns = columns.map((column) => deserialize(column))
@@ -295,7 +306,9 @@ class TableService {
 
     let query = db(table_name).where('instanceId', actual_instance_id)
     for (const field of groupBy.fields) {
-      query = query.whereRaw(`data->>'${field.key}' = ?`, [groupValues[field.key]])
+      //query = query.whereRaw(`data->>'${field.key}' = ?`, [groupValues[field.key]])
+      const path = `$.${field.key}`
+      query = query.whereRaw(`JSON_UNQUOTE(JSON_EXTRACT(data, ?)) = ?`, [path, groupValues[field.key]])
     }
 
     /**

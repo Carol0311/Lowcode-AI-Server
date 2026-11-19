@@ -6,10 +6,10 @@ const generatePageId = (): string => {
 
 async function test() {
   try {
-    const tables = await db.raw("SELECT name from sqlite_master WHERE type='table'")
+    const tables = await db.raw('SHOW TABLES')
     console.log(
       '现有表名',
-      tables.map((t: any) => t.name)
+      tables[0].map((t: any) => Object.values(t)[0])
     )
 
     const id = generatePageId()
@@ -28,7 +28,7 @@ async function test() {
   } catch (e) {
     console.log('数据库连接测试失败', e)
   } finally {
-    db.destroy()
+    await db.destroy()
   }
 }
 test()

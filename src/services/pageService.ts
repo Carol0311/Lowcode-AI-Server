@@ -5,6 +5,14 @@ import { PageSchema, FieldsSchema, PageDetlRequest } from '@/types/page'
 import db from '../db/knex'
 import { serialize, deserialize, generateUniqueId } from '../utils/index'
 
+const defaultPagesOption = {
+  rootComponentIds: JSON.stringify([]),
+  components: JSON.stringify({}),
+}
+const defaultPDatasOption = {
+  datas: JSON.stringify({}),
+}
+
 class PageService {
   private static instance: PageService
   static getInstance() {
@@ -32,6 +40,7 @@ class PageService {
       //create新页面
       const newId = generateUniqueId('Page')
       await db('pages').insert({
+        ...defaultPagesOption,
         id: newId,
         pageId: pageId || newId,
         name,
@@ -43,6 +52,7 @@ class PageService {
       })
       //create 新页面对应的pages_data
       await db('pages_data').insert({
+        ...defaultPDatasOption,
         id: newId,
         pageId: pageId || newId,
         datas: '{}',
@@ -73,6 +83,7 @@ class PageService {
         updated_at: db.fn.now(),
       })
       const result = await db('pages').where({ id }).first()
+      if (!result) return null
       return deserialize(result)
     }
     return null
@@ -81,7 +92,7 @@ class PageService {
   //获取页面列表
   async getPageList(page = 1, pageSize = 10) {
     const offset = (page - 1) * pageSize
-    const [list, total] = await Promise.all([
+    const [list = [], total] = await Promise.all([
       db('pages').select('id', 'pageId', 'name', 'rootComponentIds', 'components', 'selectId', 'isSystem').orderBy('created_at', 'desc').limit(pageSize).offset(offset),
       db('pages').count('* as count').first(),
     ])
@@ -92,7 +103,7 @@ class PageService {
     })
     return {
       currentPage: resultList.length > 0 ? resultList[0]['id'] : '',
-      totalPage: total?.count,
+      totalPage: Number(total?.count) || 0,
       pageList: resultList,
     }
   }
@@ -138,6 +149,7 @@ class PageService {
   async updateValue(fields: FieldsSchema) {
     const { id, pageId, datas } = fields
     const result = await db('pages_data').where({ id }).first()
+    if (!result) return null
     const dataEntity = deserialize(result)
     if (dataEntity && dataEntity.id && datas) {
       //update 已有页面
@@ -149,17 +161,21 @@ class PageService {
           updated_at: db.fn.now(),
         })
       return fields
-    } else {
+    }
+    return null
+
+    /**else {
       //create新页面
       const pageId = generateUniqueId('Page')
       await db('pages_data').insert({
+        ...defaultPDatasOption,
         id: pageId,
         pageId,
         datas: serialize(datas || {}),
         created_at: db.fn.now(),
       })
       return { ...fields, id: pageId, pageId }
-    }
+    }*/
   }
 }
 export const pageService = PageService.getInstance()

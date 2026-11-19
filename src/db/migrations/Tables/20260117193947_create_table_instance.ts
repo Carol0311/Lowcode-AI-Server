@@ -14,25 +14,24 @@ exports.up = function (knex: Knex) {
 
     // ========== 大数据表格配置 ==========
     // 虚拟滚动配置
-    table.jsonb('virtualScroll').defaultTo('{"enabled":true,"rowHeight":40,"bufferSize":20,"overscan":5,"useWebWorker":true}')
-
+    table.json('virtualScroll')
     // 分页配置（预留扩展，但大数据场景可能禁用）
-    table.jsonb('pagination').defaultTo('{"enabled":false,"pageSize":100,"currentPage":1}')
+    table.json('pagination')
 
     // 过滤和搜索
-    table.jsonb('filter').defaultTo('{}')
-    table.jsonb('search').defaultTo('{}')
+    table.json('filter')
+    table.json('search')
 
     //分组
-    table.boolean('isGroup').defaultTo(false) //是否为分组表格
-    table.jsonb('groupBy').defaultTo('{}') //后续根据需要扩展
+    table.boolean('isGroup').defaultTo(0) //是否为分组表格
+    table.json('groupBy') //后续根据需要扩展
 
     // 排序配置
-    table.jsonb('sort').defaultTo('{"field":"","order":"asc"}')
+    table.json('sort')
 
     // ========== 状态 ==========
-    table.boolean('isActive').defaultTo(true)
-    table.boolean('isSystem').defaultTo(false)
+    table.boolean('isActive').defaultTo(1)
+    table.boolean('isSystem').defaultTo(0)
 
     // ========== 来源 ==========
     table.string('source', 32).defaultTo('system') // 'system' | 'ai' | 'user'
@@ -40,8 +39,8 @@ exports.up = function (knex: Knex) {
     table.string('session_id', 64).nullable().references('session_id').inTable('conversation_sessions').onDelete('SET NULL') // AI对话会话ID
 
     // ========== 元数据 ==========
-    table.timestamp('created_at', { useTz: true }).defaultTo(knex.fn.now())
-    table.timestamp('updated_at', { useTz: true }).defaultTo(knex.fn.now())
+    table.timestamp('created_at').defaultTo(knex.fn.now())
+    table.timestamp('updated_at').defaultTo(knex.fn.now())
 
     // ========== 10. 索引 ==========
     table.index(['pageId'], 'idx_instance_pageId')
