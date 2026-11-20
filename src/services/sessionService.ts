@@ -182,6 +182,7 @@ class SessionService {
       return { params: [], model: {} }
     } catch (e: any) {
       console.log('获取规格列表参数出错', e.message)
+      return { params: [], model: {} }
     }
   }
 }
